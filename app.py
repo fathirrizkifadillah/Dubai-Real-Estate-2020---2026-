@@ -126,6 +126,70 @@ st.markdown("""
         background-color: #7dd3fc;
         transform: translateY(-1px);
     }
+
+    /* MOBILE OPTIMIZATIONS (CSS Media Queries) */
+    @media (max-width: 768px) {
+        /* Reduce block container margins/paddings on mobile */
+        .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-top: 1.5rem !important;
+            padding-bottom: 1.5rem !important;
+        }
+        
+        /* Make metric cards more compact */
+        .metric-card {
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+        .metric-value {
+            font-size: 20px;
+        }
+        .metric-title {
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+        .metric-delta {
+            font-size: 11px;
+        }
+        
+        /* Responsive typography headers */
+        h1 {
+            font-size: 22px !important;
+        }
+        h2 {
+            font-size: 18px !important;
+        }
+        h3 {
+            font-size: 16px !important;
+        }
+
+        /* Force touch friendliness on buttons */
+        div.stButton > button {
+            width: 100% !important;
+            padding: 12px 20px !important;
+            font-size: 15px !important;
+        }
+
+        /* Prevent sidebar content squeeze */
+        section[data-testid="stSidebar"] {
+            width: 80% !important;
+        }
+
+        /* Plotly charts overflow fix */
+        .js-plotly-plot {
+            max-width: 100% !important;
+        }
+        
+        /* Reduce tabs spacing */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 12px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            font-size: 12px;
+            padding: 8px 4px;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -262,7 +326,7 @@ if menu == "Market Overview":
     ))
     
     fig_map.update_layout(
-        height=600,
+        height=480,
         margin={"r":0,"t":10,"l":0,"b":0},
         font=dict(family="Segoe UI, Inter, sans-serif"),
         coloraxis_colorbar=dict(title="Price/Sqft (USD)", yanchor="top", y=1.0, xanchor="left", x=1.02),
@@ -275,7 +339,7 @@ if menu == "Market Overview":
         ),
         mapbox=dict(
             center=dict(lat=25.12, lon=55.25),
-            zoom=9.8
+            zoom=9.4
         )
     )
     st.plotly_chart(fig_map, use_container_width=True)
@@ -334,7 +398,7 @@ elif menu == "Yield & Opportunity Analysis":
         )
         fig_yield.update_layout(
             yaxis={'categoryorder':'total ascending'},
-            height=480,
+            height=380,
             margin={"r":0,"t":10,"l":0,"b":0},
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
@@ -368,7 +432,7 @@ elif menu == "Yield & Opportunity Analysis":
         )
         fig_gap.update_layout(
             yaxis={'categoryorder':'total ascending'},
-            height=480,
+            height=380,
             margin={"r":0,"t":10,"l":0,"b":0},
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
@@ -425,14 +489,20 @@ elif menu == "Developer Brand Equity":
         
     with col2:
         st.subheader("Calculated Premium Metrics")
-        st.markdown("")
-        st.markdown("##### **Apartment Tier 1 Premium:**")
-        st.markdown(f"<span style='color:#34d399; font-size:26px; font-weight:700;'>+{ap_premium_pct:.1f}%</span> (+${ap_t1-ap_t2:.0f}/sqft)", unsafe_allow_html=True)
-        st.markdown("Mean Tier 1: **$702/sqft** | Tier 2: **$630/sqft**")
-        st.markdown("<hr style='border-color:#334155; margin:15px 0;'>", unsafe_allow_html=True)
-        st.markdown("##### **Villa Tier 1 Premium:**")
-        st.markdown(f"<span style='color:#34d399; font-size:26px; font-weight:700;'>+{vil_premium_pct:.1f}%</span> (+${vil_t1-vil_t2:.0f}/sqft)", unsafe_allow_html=True)
-        st.markdown("Mean Tier 1: **$877/sqft** | Tier 2: **$665/sqft**")
+        st.markdown(f"""
+            <div class="metric-card accent-emerald" style="margin-top: 15px;">
+                <div class="metric-title">Apartment Tier 1 Premium</div>
+                <div class="metric-value">+{ap_premium_pct:.1f}%</div>
+                <div class="metric-delta">+${ap_t1-ap_t2:.0f}/sqft premium</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Mean Tier 1: $702/sqft | Tier 2: $630/sqft</div>
+            </div>
+            <div class="metric-card accent-purple">
+                <div class="metric-title">Villa Tier 1 Premium</div>
+                <div class="metric-value">+{vil_premium_pct:.1f}%</div>
+                <div class="metric-delta">+${vil_t1-vil_t2:.0f}/sqft premium</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Mean Tier 1: $877/sqft | Tier 2: $665/sqft</div>
+            </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("---")
     st.subheader("Off-Plan Price Estimator")
@@ -553,7 +623,7 @@ elif menu == "Price Forecasting":
             title="Dubai Median Secondary Price per Sqft Prediction",
             xaxis_title="Date",
             yaxis_title="Median Price per Sqft (USD)",
-            height=480,
+            height=400,
             hovermode="x",
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
