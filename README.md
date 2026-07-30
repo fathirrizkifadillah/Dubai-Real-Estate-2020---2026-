@@ -1,5 +1,6 @@
 # 🏙️ Dubai Real Estate Market Analysis (2020–2026)
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://dubai-real-estate-fathir.streamlit.app/)
 An end-to-end data science and exploratory data analysis (EDA) project analyzing the Dubai real estate market. This project incorporates data-driven investment analysis, statistical hypothesis testing, time series forecasting using **Meta Prophet**, and an interactive, premium dark-themed **Streamlit Dashboard**.
 
 ---
