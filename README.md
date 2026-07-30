@@ -42,6 +42,32 @@ The analysis leverages five main datasets (obtained via Kagglehub):
 
 ---
 
+## 📸 Sample Visualizations
+
+Here is a glimpse of the premium visualizations generated in this analysis:
+
+<p align="center">
+  <img src="plots/real_estate_dubai_price_map.png" width="850" title="Real Estate Price Map"><br>
+  <em>Geospatial distribution of secondary market prices across Dubai (Top 15 Zones)</em>
+</p>
+
+<p align="center">
+  <img src="plots/price_trend_forecasting_prophet.png" width="850" title="Prophet Forecast"><br>
+  <em>24-Month Meta Prophet Price Forecasting Model</em>
+</p>
+
+<p align="center">
+  <img src="plots/freehold_vs_non_freehold_price_trajectory.png" width="850" title="Freehold vs Non-Freehold"><br>
+  <em>Price trajectory and indexed performance of Freehold vs Non-Freehold communities</em>
+</p>
+
+<p align="center">
+  <img src="plots/developer_tier_premium_analysis.png" width="850" title="Developer Tier Premium"><br>
+  <em>Off-Plan developer brand equity and premium pricing analysis</em>
+</p>
+
+---
+
 ## 🖥️ Interactive Streamlit Dashboard
 
 To complement the Jupyter Notebook analysis, a production-grade, dark-themed Streamlit dashboard is included in `app.py`.
@@ -93,8 +119,17 @@ This will start a local web server (usually at `http://localhost:8501`) and open
 
 ## 📂 Project Structure
 
-* `main.ipynb`: Core Jupyter Notebook containing the full end-to-end data analysis and model training.
-* `app.py`: Streamlit application file containing the dashboard layout, visualizations, and interactive components.
-* `requirements.txt`: Python package dependencies.
-* `plots/`: Exported high-resolution visualization charts used in reports.
-* `*_Explanation.md`: Detailed markdown documentation files explaining individual dataset structures and schemas.
+```text
+Dubai Real Estate (2020-2026)/
+├── main.ipynb                          # Core EDA, statistical tests, and Prophet forecasting notebook
+├── app.py                              # Streamlit interactive dashboard application
+├── requirements.txt                    # Python package dependencies
+├── .gitignore                          # Git ignore file
+├── README.md                           # Project documentation
+├── plots/                              # High-resolution exported visualization charts
+│   ├── real_estate_dubai_price_map.png
+│   ├── price_trend_forecasting_prophet.png
+│   ├── developer_tier_premium_analysis.png
+│   └── ...
+└── *_Explanation.md                    # Detailed markdown schemas for each dataset (e.g., rentals, off_plan)
+```

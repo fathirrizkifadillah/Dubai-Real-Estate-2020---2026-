@@ -1,8 +1,9 @@
-matplotlib
-pandas
-prophet
-plotly
-numpy
-kagglehub
-seaborn
-streamlit
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+scipy>=1.10.0
+prophet>=1.1.0
+plotly>=5.15.0
+streamlit>=1.25.0
+kagglehub>=0.2.0
