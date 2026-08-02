@@ -6,6 +6,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 import kagglehub
 from prophet import Prophet
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
 
 # Set page config
 st.set_page_config(
@@ -215,6 +221,51 @@ def load_data():
 
 # Load datasets
 area_prices, metro_stations, offplan, rentals, secondary = load_data()
+
+@st.cache_resource(show_spinner=False)
+def train_offplan_price_model():
+    """Train a chronological holdout model for illustrative off-plan listing estimates."""
+    model_data = offplan.copy()
+    model_data['listing_year'] = model_data['date_listed'].dt.year
+
+    numeric_features = [
+        'area_sqft', 'bedrooms', 'launch_year', 'handover_year',
+        'metro_distance_min', 'to_burj_khalifa_km', 'listing_year'
+    ]
+    categorical_features = [
+        'property_category', 'zone', 'developer_tier', 'view', 'payment_plan'
+    ]
+    feature_columns = numeric_features + categorical_features
+
+    model_data = model_data.dropna(subset=['price_usd', 'date_listed']).sort_values('date_listed')
+    cutoff = model_data['date_listed'].quantile(0.80)
+    train_data = model_data[model_data['date_listed'] < cutoff]
+    test_data = model_data[model_data['date_listed'] >= cutoff]
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('numeric', Pipeline([('imputer', SimpleImputer(strategy='median'))]), numeric_features),
+            ('categorical', Pipeline([
+                ('imputer', SimpleImputer(strategy='most_frequent')),
+                ('onehot', OneHotEncoder(handle_unknown='ignore'))
+            ]), categorical_features)
+        ]
+    )
+    model = RandomForestRegressor(
+        n_estimators=250, min_samples_leaf=3, random_state=42, n_jobs=-1
+    )
+    pipeline = Pipeline([('preprocessor', preprocessor), ('model', model)])
+    pipeline.fit(train_data[feature_columns], train_data['price_usd'])
+
+    holdout_predictions = pipeline.predict(test_data[feature_columns])
+    absolute_errors = np.abs(test_data['price_usd'].to_numpy() - holdout_predictions)
+    metrics = {
+        'mae': mean_absolute_error(test_data['price_usd'], holdout_predictions),
+        'mape': mean_absolute_percentage_error(test_data['price_usd'], holdout_predictions),
+        'error_band': np.quantile(absolute_errors, 0.80),
+        'cutoff': cutoff
+    }
+    return pipeline, metrics, numeric_features, categorical_features
 
 # ----------------- SIDEBAR -----------------
 st.sidebar.markdown("<h2 style='margin-top: 10px;'>Dubai Real Estate</h2>", unsafe_allow_html=True)
@@ -494,58 +545,83 @@ elif menu == "Developer Brand Equity":
                 <div class="metric-title">Apartment Tier 1 Premium</div>
                 <div class="metric-value">+{ap_premium_pct:.1f}%</div>
                 <div class="metric-delta">+${ap_t1-ap_t2:.0f}/sqft premium</div>
-                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Mean Tier 1: $702/sqft | Tier 2: $630/sqft</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Observed mean — Tier 1: ${ap_t1:,.0f}/sqft | Tier 2: ${ap_t2:,.0f}/sqft</div>
             </div>
             <div class="metric-card accent-purple">
                 <div class="metric-title">Villa Tier 1 Premium</div>
                 <div class="metric-value">+{vil_premium_pct:.1f}%</div>
                 <div class="metric-delta">+${vil_t1-vil_t2:.0f}/sqft premium</div>
-                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Mean Tier 1: $877/sqft | Tier 2: $665/sqft</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Observed mean — Tier 1: ${vil_t1:,.0f}/sqft | Tier 2: ${vil_t2:,.0f}/sqft</div>
             </div>
         """, unsafe_allow_html=True)
 
     st.markdown("---")
-    st.subheader("Off-Plan Price Estimator")
-    st.markdown("Simulate the expected listing price of an off-plan property unit using developer tier pricing differentials.")
-    
+    st.subheader("Off-Plan Listing Price Estimate")
+    st.markdown("Estimate a total **off-plan listing price** with a Random Forest model trained on prior listings. It uses property, location, accessibility, developer-tier, view, payment-plan, and timing features. This is an exploratory portfolio model—not a formal valuation or investment advice.")
+
+    with st.spinner("Preparing the chronological-holdout pricing model..."):
+        pricing_model, pricing_metrics, numeric_model_features, categorical_model_features = train_offplan_price_model()
+
     c1, c2, c3 = st.columns(3)
     with c1:
-        prop_cat = st.selectbox("Select Property Category", ["Apartment", "Villa"])
+        prop_cat = st.selectbox("Property Category", sorted(df_offplan['property_category'].dropna().unique()))
+        selected_zone = st.selectbox("Zone", sorted(df_offplan['zone'].dropna().unique()))
+        developer_tier = st.selectbox("Developer Tier", sorted(df_offplan['developer_tier'].dropna().unique()))
     with c2:
-        dev_tier = st.selectbox("Select Developer Tier", ["Tier1", "Tier2"])
-    with c3:
         size_sqft = st.number_input("Property Size (Sqft)", min_value=300, max_value=15000, value=1200)
-        
-    # Predict price on button click
-    run_calc = st.button("Calculate Estimated Price")
-    
-    if run_calc or 'predicted_price_val' in st.session_state:
-        if run_calc:
-            base_rate = stats[(stats['property_category'] == prop_cat) & (stats['developer_tier'] == dev_tier)]['mean'].values[0]
-            st.session_state['predicted_price_val'] = base_rate * size_sqft
-            st.session_state['predicted_base_rate'] = base_rate
-            st.session_state['predicted_size'] = size_sqft
-            st.session_state['predicted_cat'] = prop_cat
-            st.session_state['predicted_tier'] = dev_tier
-            
-        pred_val = st.session_state['predicted_price_val']
-        pred_rate = st.session_state['predicted_base_rate']
-        pred_size = st.session_state['predicted_size']
-        pred_cat = st.session_state['predicted_cat']
-        pred_tier = st.session_state['predicted_tier']
-        
-        st.markdown(f"""
-            <div style="background-color: #1e293b; padding: 20px; border-radius: 8px; border-left: 4px solid #38bdf8; margin-top: 15px;">
-                <span style="font-size: 13px; font-weight:600; color:#94a3b8; text-transform:uppercase;">Estimated Market Price</span>
-                <h2 style="margin: 5px 0 0 0; color:#f8fafc; font-weight:700;">${pred_val:,.0f} USD</h2>
-                <span style="font-size: 13px; color:#cbd5e1;">Calculated at a rate of <b>${pred_rate:.0f}/sqft</b> for a {pred_size:,} sqft off-plan {pred_cat} developed by a {pred_tier} developer.</span>
-            </div>
-        """, unsafe_allow_html=True)
+        bedrooms = st.number_input("Bedrooms", min_value=0, max_value=10, value=2)
+        selected_view = st.selectbox("Primary View", sorted(df_offplan['view'].dropna().unique()))
+        payment_plan = st.selectbox("Payment Plan", sorted(df_offplan['payment_plan'].dropna().unique()))
+    with c3:
+        launch_year = st.selectbox("Launch Year", sorted(df_offplan['launch_year'].dropna().unique()))
+        handover_year = st.selectbox("Expected Handover Year", sorted(df_offplan['handover_year'].dropna().unique()))
+        metro_distance = st.number_input("Nearest Metro (minutes)", min_value=0, max_value=120, value=12)
+        burj_distance = st.number_input("Distance to Burj Khalifa (km)", min_value=0.0, max_value=80.0, value=15.0, step=0.5)
+
+    run_estimate = st.button("Estimate Listing Price")
+
+    if run_estimate or 'offplan_prediction' in st.session_state:
+        if run_estimate:
+            prediction_input = pd.DataFrame([{
+                'area_sqft': size_sqft,
+                'bedrooms': bedrooms,
+                'launch_year': launch_year,
+                'handover_year': handover_year,
+                'metro_distance_min': metro_distance,
+                'to_burj_khalifa_km': burj_distance,
+                'listing_year': int(df_offplan['date_listed'].dt.year.max()),
+                'property_category': prop_cat,
+                'zone': selected_zone,
+                'developer_tier': developer_tier,
+                'view': selected_view,
+                'payment_plan': payment_plan
+            }])
+            st.session_state['offplan_prediction'] = float(pricing_model.predict(prediction_input)[0])
+
+        estimate = st.session_state['offplan_prediction']
+        error_band = pricing_metrics['error_band']
+        lower_bound = max(0, estimate - error_band)
+        upper_bound = estimate + error_band
+        estimate_rate = estimate / size_sqft
+
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Estimated Listing Price", f"${estimate:,.0f}")
+        m2.metric("Estimated Price / Sqft", f"${estimate_rate:,.0f}")
+        m3.metric("Empirical 80% Error Band", f"±${error_band:,.0f}")
+        st.info(f"Indicative 80% empirical error range: **${lower_bound:,.0f}–${upper_bound:,.0f}**. This range is based on absolute errors from the chronological holdout, not a formal statistical prediction interval.")
+        st.caption(f"Chronological holdout: listings on/after {pricing_metrics['cutoff']:%b %Y}. Holdout MAE: ${pricing_metrics['mae']:,.0f}; MAPE: {pricing_metrics['mape']:.1%}.")
 
 # ----------------- VIEW 4: PRICE FORECASTING -----------------
 elif menu == "Price Forecasting":
     st.title("Price Forecasting")
-    st.markdown("Generate dynamic 24-month projections for Dubai secondary real estate values using Meta Prophet.")
+    st.markdown("Generate a configurable **Prophet time-series forecast** of monthly median secondary price per square foot. This is a historical-pattern projection, not an individual-property valuation or investment advice.")
+    with st.expander("Forecast methodology and limitations"):
+        st.markdown("""
+        - The series is the monthly **median** secondary price per square foot across the source area-price table.
+        - Prophet models trend, changepoints, and yearly seasonality; the shaded band is the model's uncertainty interval.
+        - Future supply, policy, macroeconomic conditions, and changes in listing composition can make actual outcomes differ materially from the projection.
+        - See `main.ipynb` for rolling-origin Prophet cross-validation, RMSE, MAPE, and a seasonal-naive benchmark.
+        """)
     st.markdown("---")
     
     # Set up timeseries data
@@ -661,7 +737,7 @@ elif menu == "Price Forecasting":
                 <div class="metric-card accent-emerald">
                     <div class="metric-title">Projected Trend Change</div>
                     <div class="metric-value">{pct_change:+.1f}%</div>
-                    <div class="metric-delta" style="color:#cbd5e1;">Stabilizing Market Phase</div>
+                    <div class="metric-delta" style="color:#cbd5e1;">Historical-pattern scenario</div>
                 </div>
             """, unsafe_allow_html=True)
             
