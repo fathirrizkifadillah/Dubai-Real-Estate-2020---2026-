@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  dubai-dashboard:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: dubai-dashboard
+    ports:
+      - "8501:8501"  # Port host : Port container
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
