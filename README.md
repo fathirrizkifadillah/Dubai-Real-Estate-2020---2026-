@@ -34,21 +34,24 @@ The forecasting chapter aggregates monthly median secondary price per square foo
 
 ## Dashboard Features
 
-1. **Market Overview** — KPIs, a map of sampled listings, metro overlays, and price trends.
-2. **Yield & Opportunity Analysis** — gross-yield proxy and off-plan-versus-secondary price-gap comparisons.
-3. **Developer Brand Equity** — Tier 1 versus Tier 2 observed price comparison and an off-plan listing-price estimator with a chronological holdout MAE/MAPE and empirical error band.
-4. **Prophet Forecast Explorer** — configurable forecast horizon, uncertainty interval, trend, and yearly-seasonality components.
+1. **Market Overview** — Macro KPIs, interactive Mapbox of active listings overlaid with Dubai Metro lines and Burj Khalifa core, historical price trajectories, with live **USD / AED** currency and **Sq. Ft / m²** unit toggles.
+2. **Yield & Opportunity Analysis** — Gross vs. estimated Net rental yields (adjusted for service charges and vacancy), off-plan launch premiums, and **Unsupervised District Archetypes (K-Means & PCA Clustering)**.
+3. **Developer Brand Equity & Econometrics** — Observed Tier 1 vs Tier 2 pricing comparison, complemented by a multivariate **Hedonic OLS model** isolating pure brand pricing power (+$149/sqft) after controlling for unit size and proximity to Downtown.
+4. **Valuation Intelligence (Scikit-Learn)** — Dual ML valuation engine: **Secondary Resale Fair Valuation** (HistGradientBoostingRegressor with holdout MAPE ~22%) and **Off-Plan Project Estimator** with empirical error bands.
+5. **Investment & Mortgage Simulator** — Interactive buy-to-let cash-flow calculator computing monthly mortgage EMI, net annual cash flow, net rental yield, and payback period.
+6. **Prophet Forecast Explorer** — Configurable forecast horizon (6–36 months), 95% model uncertainty band, trend, and yearly seasonality decomposition.
 
 ## Project Structure
 
 ```text
 Dubai Real Estate (2020-2026)/
-├── main.ipynb                         # EDA, statistical tests, Prophet forecast, validation
-├── app.py                              # Streamlit dashboard
+├── main.ipynb                         # EDA, rigorous statistical testing, ML pipelines, Prophet forecast
+├── app.py                              # Streamlit intelligence dashboard (refined architectural UI)
+├── models/                             # Pre-trained Scikit-Learn pipelines and cluster taxonomy
 ├── requirements.txt                    # Python dependencies
 ├── LICENSE                             # MIT license for this repository's code
-├── plots/                              # Exported charts
-└── *_Explanation.md                    # Dataset field documentation
+├── plots/                              # Exported publication-grade charts
+└── *_Explanation.md                    # Bilingual dataset field documentation
 ```
 
 ## Run Locally
