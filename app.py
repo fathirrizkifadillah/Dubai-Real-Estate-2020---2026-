@@ -255,8 +255,16 @@ if menu == "Market Overview":
             </div>
         """, unsafe_allow_html=True)
         
-    st.markdown("### Spatial Distribution & Transit Accessibility")
-    st.caption("Resale listings colored by price rate, overlaid with the Dubai Metro transit network and the Burj Khalifa city core.")
+    col_map_info, col_map_style = st.columns([3, 1])
+    with col_map_info:
+        st.markdown("### Spatial Distribution & Transit Accessibility")
+        st.caption("Resale listings colored by price rate, overlaid with the Dubai Metro transit network and the Burj Khalifa city core.")
+    with col_map_style:
+        map_theme = st.selectbox(
+            "Map Basemap Style",
+            ["Dark Architectural (OpenFreeMap)", "Dark Canvas (ESRI)", "OpenStreetMap"],
+            index=0
+        )
     
     # Fast map sampling
     @st.cache_data
@@ -266,24 +274,48 @@ if menu == "Market Overview":
     map_df = get_map_sample(secondary)
     map_df['plot_rate'] = map_df['price_per_sqft_usd'] * curr_mult * unit_price_factor
     
-    fig_map = px.scatter_mapbox(
+    # Configure basemap style without API key requirements (eliminates Carto watermark)
+    if map_theme == "Dark Architectural (OpenFreeMap)":
+        map_layout_cfg = dict(
+            style='https://tiles.openfreemap.org/styles/dark',
+            center=dict(lat=25.12, lon=55.25),
+            zoom=9.3
+        )
+    elif map_theme == "Dark Canvas (ESRI)":
+        map_layout_cfg = dict(
+            style='white-bg',
+            center=dict(lat=25.12, lon=55.25),
+            zoom=9.3,
+            layers=[dict(
+                below='traces',
+                sourcetype='raster',
+                source=['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}']
+            )]
+        )
+    else:  # OpenStreetMap
+        map_layout_cfg = dict(
+            style='open-street-map',
+            center=dict(lat=25.12, lon=55.25),
+            zoom=9.3
+        )
+    
+    fig_map = px.scatter_map(
         map_df,
         lat="lat",
         lon="lon",
         color="plot_rate",
         size="area_sqft",
         color_continuous_scale="Viridis",
-        size_max=8,
-        mapbox_style="carto-darkmatter"
+        size_max=8
     )
     
     # Overlay Red Line
     metro_red = metro_stations[metro_stations['line'] == 'Red']
-    fig_map.add_trace(go.Scattermapbox(
+    fig_map.add_trace(go.Scattermap(
         lat=metro_red['lat'],
         lon=metro_red['lon'],
         mode='markers',
-        marker=dict(size=6, color='#ef4444', opacity=0.85),
+        marker=dict(size=6, color='#ef4444', opacity=0.9),
         text=metro_red['station_name'].apply(lambda x: f"Metro Red: {x}"),
         hoverinfo='text',
         name='Metro Red Line'
@@ -291,18 +323,18 @@ if menu == "Market Overview":
     
     # Overlay Green Line
     metro_green = metro_stations[metro_stations['line'] == 'Green']
-    fig_map.add_trace(go.Scattermapbox(
+    fig_map.add_trace(go.Scattermap(
         lat=metro_green['lat'],
         lon=metro_green['lon'],
         mode='markers',
-        marker=dict(size=6, color='#10b981', opacity=0.85),
+        marker=dict(size=6, color='#10b981', opacity=0.9),
         text=metro_green['station_name'].apply(lambda x: f"Metro Green: {x}"),
         hoverinfo='text',
         name='Metro Green Line'
     ))
     
     # Overlay Burj Khalifa
-    fig_map.add_trace(go.Scattermapbox(
+    fig_map.add_trace(go.Scattermap(
         lat=[25.1972],
         lon=[55.2744],
         mode='markers',
@@ -318,7 +350,7 @@ if menu == "Market Overview":
         font=dict(family="-apple-system, sans-serif"),
         coloraxis_colorbar=dict(title=f"Rate ({curr_sym}/{unit_name})"),
         legend=dict(yanchor="top", y=0.98, xanchor="left", x=0.01, bgcolor="rgba(15, 20, 31, 0.85)"),
-        mapbox=dict(center=dict(lat=25.12, lon=55.25), zoom=9.3)
+        map=map_layout_cfg
     )
     st.plotly_chart(fig_map, use_container_width=True)
     
