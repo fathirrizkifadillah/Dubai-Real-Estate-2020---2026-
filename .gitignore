@@ -6,13 +6,17 @@ __pycache__/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-# HTML export (large file, regenerate from notebook)
+# HTML export and test dumps
 *.html
+test_*.html
+*_test.png
 
 # Environment
 .env
+.env.*
 .venv/
 venv/
+scratch/
 
 # OS files
 .DS_Store

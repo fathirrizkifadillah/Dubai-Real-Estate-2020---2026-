@@ -48,10 +48,11 @@ Dubai Real Estate (2020-2026)/
 ├── main.ipynb                         # EDA, rigorous statistical testing, ML pipelines, Prophet forecast
 ├── app.py                              # Streamlit intelligence dashboard (refined architectural UI)
 ├── models/                             # Pre-trained Scikit-Learn pipelines and cluster taxonomy
+├── docs/
+│   └── data_dictionary/               # Bilingual dataset field documentation (5 tables)
 ├── requirements.txt                    # Python dependencies
 ├── LICENSE                             # MIT license for this repository's code
-├── plots/                              # Exported publication-grade charts
-└── *_Explanation.md                    # Bilingual dataset field documentation
+└── plots/                              # Exported publication-grade charts
 ```
 
 ## Run Locally

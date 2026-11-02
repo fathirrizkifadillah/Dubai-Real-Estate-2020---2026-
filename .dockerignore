@@ -5,9 +5,15 @@ __pycache__
 *.py[cod]
 
 *.ipynb
+*.html
+test_*.html
+*_test.*
 
 README.md
 LICENSE
+docs/
+plots/
+scratch/
 
 .vscode
 .idea

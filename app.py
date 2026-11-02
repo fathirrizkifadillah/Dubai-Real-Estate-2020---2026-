@@ -591,7 +591,16 @@ elif menu == "Valuation Intelligence (ML)":
             
         if st.button("Calculate Resale Fair Valuation"):
             if os.path.exists("models/secondary_valuation_model.joblib"):
-                sec_model = joblib.load("models/secondary_valuation_model.joblib")
+                sec_obj = joblib.load("models/secondary_valuation_model.joblib")
+                if isinstance(sec_obj, dict):
+                    sec_model = sec_obj['pipeline']
+                    sec_mape = sec_obj.get('mape', 0.22)
+                    sec_err_band = sec_obj.get('error_band', None)
+                else:
+                    sec_model = sec_obj
+                    sec_mape = 0.22
+                    sec_err_band = None
+
                 input_df = pd.DataFrame([{
                     'area_sqft': sec_area_sqft,
                     'bedrooms': sec_beds,
@@ -625,11 +634,12 @@ elif menu == "Valuation Intelligence (ML)":
                         </div>
                     """, unsafe_allow_html=True)
                 with m3:
+                    band_val_str = f"±{fmt_money(sec_err_band)}" if sec_err_band is not None else f"±{fmt_money(est_usd * sec_mape)}"
                     st.markdown(f"""
                         <div class="luxury-card">
                             <div class="luxury-eyebrow">Empirical 80% Error Band</div>
-                            <div class="luxury-value" style="font-size: 20px;">±{fmt_money(est_usd * 0.22)}</div>
-                            <div class="luxury-badge">Holdout MAPE: 22.0%</div>
+                            <div class="luxury-value" style="font-size: 20px;">{band_val_str}</div>
+                            <div class="luxury-badge">Holdout MAPE: {sec_mape:.1%}</div>
                         </div>
                     """, unsafe_allow_html=True)
             else:
@@ -728,8 +738,13 @@ elif menu == "Investment & Mortgage Simulator":
         annual_rent = st.number_input(f"Expected Annual Rent ({selected_currency})", min_value=10000, max_value=5000000, value=int(default_rent_usd * curr_mult), step=5000)
         annual_rent_usd = annual_rent / curr_mult
         
-        service_charge_usd_per_sqft = st.slider("Annual Service Charge ($/sqft)", min_value=1.0, max_value=10.0, value=4.0, step=0.5)
-        prop_size_sqft = st.number_input("Property Size (sqft)", min_value=300, max_value=10000, value=1100, step=50)
+        default_sc_display = float(round(4.0 * curr_mult * unit_price_factor, 1))
+        sc_input = st.slider(f"Annual Service Charge ({curr_sym}/{unit_name})", min_value=1.0, max_value=float(round(25.0 * curr_mult * unit_price_factor, 1)), value=default_sc_display, step=0.5)
+        service_charge_usd_per_sqft = sc_input / (curr_mult * unit_price_factor)
+        
+        default_size = 1100 if unit_sqft else int(1100 * SQFT_TO_M2)
+        prop_size_input = st.number_input(f"Property Size ({unit_name})", min_value=30 if not unit_sqft else 300, max_value=10000, value=default_size, step=50)
+        prop_size_sqft = prop_size_input if unit_sqft else (prop_size_input / SQFT_TO_M2)
         vacancy_pct = st.slider("Vacancy & Maintenance Allowance (%)", min_value=0, max_value=15, value=5, step=1)
         
     # Financial Computations
@@ -753,6 +768,7 @@ elif menu == "Investment & Mortgage Simulator":
     initial_equity_usd = prop_price_usd * (down_pct / 100.0) + (prop_price_usd * 0.04) # +4% DLD transfer fee
     cash_on_cash = (net_annual_cashflow_usd / initial_equity_usd) * 100 if initial_equity_usd > 0 else 0
     payback_years = (initial_equity_usd / net_annual_cashflow_usd) if net_annual_cashflow_usd > 0 else np.nan
+    payback_str = f"{payback_years:.1f} yrs" if (net_annual_cashflow_usd > 0 and not np.isnan(payback_years)) else "N/A"
     
     st.markdown("<hr>", unsafe_allow_html=True)
     st.subheader("Financial Performance Dashboard")
@@ -787,7 +803,7 @@ elif menu == "Investment & Mortgage Simulator":
             <div class="luxury-card">
                 <div class="luxury-eyebrow">Cash-on-Cash Return</div>
                 <div class="luxury-value">{cash_on_cash:.1f}%</div>
-                <div class="luxury-badge">Payback: {payback_years:.1f} yrs if cashflow > 0 else 'N/A'</div>
+                <div class="luxury-badge">Payback: {payback_str}</div>
             </div>
         """, unsafe_allow_html=True)
 
