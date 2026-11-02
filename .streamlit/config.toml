@@ -1,0 +1,28 @@
+[theme]
+base = "dark"
+primaryColor = "#c5a880"
+backgroundColor = "#090d16"
+secondaryBackgroundColor = "#111726"
+textColor = "#f1f5f9"
+font = "sans serif"
+borderColor = "#1e293b"
+showWidgetBorder = true
+chartCategoricalColors = [
+    "#c5a880", # Champagne Gold
+    "#38bdf8", # Sky Blue
+    "#34d399", # Emerald Mint
+    "#f87171", # Coral Red
+    "#a78bfa", # Lavender Purple
+    "#fbbf24"  # Amber
+]
+
+[theme.sidebar]
+backgroundColor = "#0c101c"
+textColor = "#e2e8f0"
+borderColor = "#1e293b"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
