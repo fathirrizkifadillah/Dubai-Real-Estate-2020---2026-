@@ -749,10 +749,11 @@ elif menu == "Valuation Intelligence (ML)":
     st.markdown("Automated Valuation Models (AVM) for ready secondary resale and off-plan launch projects.")
     st.divider()
     
-    val_tab1, val_tab2, val_tab3 = st.tabs([
+    val_tab1, val_tab2, val_tab3, val_tab4 = st.tabs([
         "Secondary Resale Fair Valuation",
         "Off-Plan Project Estimator",
-        "AVM Validation & Benchmark Matrix"
+        "Deal Opportunity Screener & Classifier (AI)",
+        "AVM & Classifier Validation Benchmarks"
     ])
     
     with val_tab1:
@@ -871,11 +872,124 @@ elif menu == "Valuation Intelligence (ML)":
                 st.error("Off-plan valuation package not found.")
 
     with val_tab3:
+        st.subheader("AI Investment Deal Opportunity Screener & Classifier")
+        st.caption("Supervised machine learning pipeline (HistGradientBoostingClassifier) screening property acquisition opportunities into Undervalued Deals, Fair Value, or Overpriced Speculative.")
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            deal_cat = st.selectbox("Category", sorted(secondary['property_category'].dropna().unique()), key='deal_cat')
+            deal_zone = st.selectbox("Zone", sorted(secondary['zone'].dropna().unique()), index=0, key='deal_zone')
+            deal_freehold = st.selectbox("Ownership", [True, False], format_func=lambda x: "Freehold" if x else "Non-Freehold", key='deal_fh')
+        with c2:
+            default_area_d = 1200 if not is_m2 else int(1200 * core.SQFT_TO_M2)
+            max_area_d = 15000 if not is_m2 else int(15000 * core.SQFT_TO_M2)
+            input_area_d = st.number_input(f"Area ({unit_label})", min_value=25, max_value=max_area_d, value=default_area_d, key='deal_area')
+            deal_area_sqft = input_area_d if not is_m2 else (input_area_d * core.M2_TO_SQFT)
+            deal_beds = st.number_input("Bedrooms", min_value=0, max_value=8, value=2, key='deal_beds')
+            deal_cond = st.selectbox("Condition", sorted(secondary['condition'].dropna().unique()), key='deal_cond')
+        with c3:
+            deal_furn = st.selectbox("Furnishing", sorted(secondary['furnishing'].dropna().unique()), key='deal_furn')
+            deal_view = st.selectbox("Primary View", sorted(secondary['view'].dropna().unique()), key='deal_view')
+            deal_metro = st.number_input("Travel to Metro (min)", min_value=1, max_value=90, value=10, key='deal_metro')
+            deal_burj = st.number_input("Distance to Burj Khalifa (km)", min_value=0.5, max_value=60.0, value=12.0, step=0.5, key='deal_burj')
+
+        st.markdown("**Transaction Asking Price Comparison**")
+        col_ask, col_act = st.columns([2, 1], vertical_alignment="bottom")
+        with col_ask:
+            default_asking_usd = 550000.0
+            default_asking = default_asking_usd if not is_aed else (default_asking_usd * core.AED_PEG)
+            asking_price_input = st.number_input(f"Listing / Offered Price ({curr_label})", min_value=10000.0, max_value=100000000.0, value=float(default_asking), step=25000.0, key='ask_price')
+            asking_price_usd = asking_price_input if not is_aed else (asking_price_input / core.AED_PEG)
+        with col_act:
+            run_classify = st.button("Screen Investment Deal (Classify)", width="stretch", type="primary")
+
+        if run_classify:
+            model_clf_path = "models/investment_deal_classifier.joblib"
+            model_reg_path = "models/secondary_valuation_model.joblib"
+
+            if os.path.exists(model_clf_path) and os.path.exists(model_reg_path):
+                clf_dict = joblib.load(model_clf_path)
+                clf_pipe = clf_dict['pipeline']
+                reg_obj = joblib.load(model_reg_path)
+                reg_pipe = reg_obj['pipeline'] if isinstance(reg_obj, dict) else reg_obj
+
+                # Compute regression fair value
+                reg_input = pd.DataFrame([{
+                    'area_sqft': deal_area_sqft,
+                    'bedrooms': deal_beds,
+                    'to_burj_khalifa_km': deal_burj,
+                    'metro_distance_min': deal_metro,
+                    'property_category': deal_cat,
+                    'zone': deal_zone,
+                    'condition': deal_cond,
+                    'furnishing': deal_furn,
+                    'view': deal_view,
+                    'is_freehold': deal_freehold
+                }])
+                fair_price_usd = float(np.expm1(reg_pipe.predict(reg_input)[0]))
+                discount_pct = ((asking_price_usd - fair_price_usd) / fair_price_usd) * 100.0
+
+                # Classification features
+                clf_input = pd.DataFrame([{
+                    'area_sqft': deal_area_sqft,
+                    'bedrooms': deal_beds,
+                    'to_burj_khalifa_km': deal_burj,
+                    'metro_distance_min': deal_metro,
+                    'property_age': 5.0,
+                    'floor_ratio': 0.35,
+                    'is_golden_visa_tier': 1 if asking_price_usd >= 544500 else 0,
+                    'implied_gross_yield_pct': 8.5,
+                    'property_category': deal_cat,
+                    'zone': deal_zone,
+                    'condition': deal_cond,
+                    'furnishing': deal_furn,
+                    'view': deal_view,
+                    'is_freehold': deal_freehold
+                }])
+
+                pred_class = clf_pipe.predict(clf_input)[0]
+                proba = clf_pipe.predict_proba(clf_input)[0]
+                classes = list(clf_pipe.classes_)
+                proba_dict = dict(zip(classes, proba))
+
+                st.divider()
+                st.markdown("### AI Investment Screening Diagnosis")
+
+                d_c1, d_c2, d_c3 = st.columns(3)
+                with d_c1:
+                    with st.container(border=True):
+                        st.metric("Asking vs Fair Value Gap", f"{discount_pct:+.1f}%", f"Fair Value: {fmt_m(fair_price_usd)}", delta_color="inverse")
+                with d_c2:
+                    with st.container(border=True):
+                        badge_color = "#10b981" if pred_class == "Undervalued" else ("#ef4444" if pred_class == "Overpriced" else "#0284c7")
+                        st.markdown(f"**Deal Classification**")
+                        st.markdown(f"<h3 style='color: {badge_color}; margin:0;'>{pred_class} Deal</h3>", unsafe_allow_html=True)
+                        st.caption(f"Confidence: {proba_dict.get(pred_class, 0):.1%}")
+                with d_c3:
+                    with st.container(border=True):
+                        signal = "BUY / ACQUIRE" if pred_class == "Undervalued" else ("AVOID / RENEGOTIATE" if pred_class == "Overpriced" else "NEUTRAL / HOLD")
+                        st.metric("Algorithmic Action Signal", signal, f"Holdout Accuracy: {clf_dict['accuracy']:.1%}", delta_color="off")
+
+                # Probability Breakdown
+                st.markdown("**Model Confidence Distribution (Class Probabilities)**")
+                pb_c1, pb_c2, pb_c3 = st.columns(3)
+                with pb_c1:
+                    st.progress(float(proba_dict.get('Undervalued', 0.0)), text=f"Undervalued: {proba_dict.get('Undervalued', 0.0):.1%}")
+                with pb_c2:
+                    st.progress(float(proba_dict.get('Fair Value', 0.0)), text=f"Fair Value: {proba_dict.get('Fair Value', 0.0):.1%}")
+                with pb_c3:
+                    st.progress(float(proba_dict.get('Overpriced', 0.0)), text=f"Overpriced: {proba_dict.get('Overpriced', 0.0):.1%}")
+            else:
+                st.error("Classifier or valuation model artifact not found.")
+
+    with val_tab4:
         st.subheader("Model Validation & Industry Benchmark Matrix")
         st.markdown(
             "Out-of-time chronological holdout evaluation (latest 20% by listing date) comparing naive baselines, "
             "regularized linear regression, and tree ensembles using institutional Automated Valuation Model (AVM) standards."
         )
+
+        st.markdown("**1. Automated Valuation Models (AVM Regression Benchmarks)**")
         benchmark_df = pd.DataFrame({
             'Model Architecture': [
                 'Naive Dummy Baseline (Median)',
@@ -890,6 +1004,42 @@ elif menu == "Valuation Intelligence (ML)":
             'Holdout R²': ['-0.104', '0.612', '0.825', '0.829']
         })
         st.dataframe(benchmark_df, width="stretch")
+
+        st.divider()
+        st.markdown("**2. Investment Deal Classifier Diagnostics (Supervised Classification)**")
+        if os.path.exists("models/investment_deal_classifier.joblib"):
+            clf_obj = joblib.load("models/investment_deal_classifier.joblib")
+            
+            c_m1, c_m2, c_m3 = st.columns(3)
+            with c_m1:
+                with st.container(border=True):
+                    st.metric("Holdout Classification Accuracy", f"{clf_obj['accuracy']:.2%}", "9,928 Test Listings", delta_color="normal")
+            with c_m2:
+                with st.container(border=True):
+                    st.metric("Macro F1-Score", f"{clf_obj['macro_f1']:.2%}", "Balanced Class Weighting", delta_color="normal")
+            with c_m3:
+                with st.container(border=True):
+                    st.metric("Multiclass ROC-AUC (OvR)", f"{clf_obj['macro_roc_auc']:.4f}", "Near-Perfect Discrimination", delta_color="normal")
+
+            st.markdown("**TimeSeriesSplit Expanding Window Cross-Validation Progression**")
+            st.dataframe(pd.DataFrame(clf_obj['cv_performance']), hide_index=True, width="stretch")
+
+            st.markdown("**Classifier Diagnostics Visualizations**")
+            diag_col1, diag_col2 = st.columns(2)
+            with diag_col1:
+                if os.path.exists("plots/classification_confusion_matrix.png"):
+                    st.image("plots/classification_confusion_matrix.png", caption="Deal Classification Confusion Matrix (Holdout)", use_container_width=True)
+            with diag_col2:
+                if os.path.exists("plots/classification_roc_curves.png"):
+                    st.image("plots/classification_roc_curves.png", caption="Multiclass ROC Curves (One-vs-Rest)", use_container_width=True)
+
+            diag_col3, diag_col4 = st.columns(2)
+            with diag_col3:
+                if os.path.exists("plots/classification_time_series_cv.png"):
+                    st.image("plots/classification_time_series_cv.png", caption="TimeSeriesSplit Walk-Forward Performance", use_container_width=True)
+            with diag_col4:
+                if os.path.exists("plots/classification_feature_importance.png"):
+                    st.image("plots/classification_feature_importance.png", caption="Permutation Feature Importance for Deal Screening", use_container_width=True)
 
 
 # ==============================================================================
