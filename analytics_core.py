@@ -8,6 +8,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from scipy import stats
+from scipy.spatial.distance import cdist
+import statsmodels.api as sm
 
 # ----------------- CONSTANTS & CONVERSIONS -----------------
 AED_PEG: float = 3.6725
@@ -203,3 +205,197 @@ def compute_community_freehold_test(area_prices_df: pd.DataFrame) -> dict[str, f
         'mann_whitney_u': float(u_stat),
         'mann_whitney_p_val': float(u_pval)
     }
+
+
+# ----------------- ADVANCED FEATURE ENGINEERING & ECONOMETRICS -----------------
+def engineer_secondary_features(df_sec: pd.DataFrame, df_rentals: pd.DataFrame | None = None) -> pd.DataFrame:
+    """
+    Enrich secondary sales transactions with domain-specific engineering:
+    - property_age: depreciation horizon in desert climate
+    - floor_ratio & is_penthouse_tier: vertical elevation premium
+    - is_golden_visa_tier: post-Oct 2022 AED 2M ($544,500) residency threshold
+    - implied_gross_yield_pct: cross-table fundamental cap rate synthesis
+    """
+    df = df_sec.copy()
+    if 'date_listed' in df.columns:
+        dates = pd.to_datetime(df['date_listed'], errors='coerce')
+        df['listing_year'] = dates.dt.year.fillna(2023).astype(int)
+    else:
+        df['listing_year'] = 2023
+
+    # Property age & brand new indicator
+    if 'year_built' in df.columns:
+        df['property_age'] = (df['listing_year'] - df['year_built']).clip(lower=0, upper=50)
+        df['is_brand_new'] = (df['property_age'] <= 1).astype(int)
+    else:
+        df['property_age'] = 5
+        df['is_brand_new'] = 0
+
+    # Vertical elevation & floor ratio
+    is_villa = df['property_category'].str.lower() == 'villa' if 'property_category' in df.columns else False
+    floor_clean = np.where(is_villa, 0, df['floor'].fillna(3)) if 'floor' in df.columns else np.zeros(len(df))
+    total_floors_clean = np.where(is_villa, 2, df['total_floors'].fillna(10)) if 'total_floors' in df.columns else np.ones(len(df)) * 10
+    
+    total_floors_clean = np.where(total_floors_clean <= 0, 1, total_floors_clean)
+    df['floor_ratio'] = (floor_clean / total_floors_clean).clip(0.0, 1.0)
+    df['is_penthouse_tier'] = ((floor_clean >= (total_floors_clean - 2)) & (floor_clean >= 15)).astype(int)
+
+    # Golden Visa eligibility flag
+    if 'price_usd' in df.columns:
+        df['is_golden_visa_tier'] = ((df['price_usd'] >= 544500) & (df['listing_year'] >= 2022)).astype(int)
+
+    # Cross-table rental synthesis
+    if df_rentals is not None and 'area_sqft' in df.columns and 'price_usd' in df.columns:
+        rent = df_rentals.copy()
+        if 'annual_rent_usd' in rent.columns and 'area_sqft' in rent.columns:
+            rent['rent_per_sqft'] = rent['annual_rent_usd'] / rent['area_sqft'].replace(0, np.nan)
+            zone_rent_map = rent.groupby(['zone', 'bedrooms'])['rent_per_sqft'].median().to_dict()
+            global_rent = rent['rent_per_sqft'].median()
+            
+            tuples = list(zip(df['zone'], df['bedrooms']))
+            df['zone_rent_sqft'] = pd.Series(tuples, index=df.index).map(zone_rent_map).fillna(global_rent)
+            df['implied_gross_yield_pct'] = (df['zone_rent_sqft'] * df['area_sqft'] / df['price_usd'].replace(0, np.nan) * 100.0).clip(0.0, 25.0)
+
+    return df
+
+
+def engineer_offplan_features(df_off: pd.DataFrame) -> pd.DataFrame:
+    """
+    Enrich off-plan listings with developer pipeline and handover risk dimensions.
+    """
+    df = df_off.copy()
+    if 'date_listed' in df.columns:
+        dates = pd.to_datetime(df['date_listed'], errors='coerce')
+        df['listing_year'] = dates.dt.year.fillna(2023).astype(int)
+    else:
+        df['listing_year'] = 2023
+
+    if 'handover_year' in df.columns and 'launch_year' in df.columns:
+        df['construction_lead_time'] = (df['handover_year'] - df['launch_year']).clip(lower=0, upper=12)
+        df['years_to_handover'] = (df['handover_year'] - df['listing_year']).clip(lower=0, upper=10)
+    else:
+        df['construction_lead_time'] = 3
+        df['years_to_handover'] = 2
+
+    if 'total_project_units' in df.columns:
+        med_units = df['total_project_units'].median()
+        df['log_project_units'] = np.log1p(df['total_project_units'].fillna(med_units))
+
+    if 'price_usd' in df.columns:
+        df['is_golden_visa_tier'] = ((df['price_usd'] >= 544500) & (df['listing_year'] >= 2022)).astype(int)
+
+    return df
+
+
+def compute_spatial_moran_i(
+    df: pd.DataFrame,
+    value_col: str = 'price_per_sqft_usd',
+    group_col: str = 'zone',
+    n_permutations: int = 999
+) -> dict[str, float | int]:
+    """
+    Calculate Global Moran's I spatial autocorrelation coefficient with Monte Carlo permutation testing.
+    Proves whether geographic pricing clusters systematically across Dubai districts.
+    """
+    zone_geo = df.groupby(group_col).agg(
+        val=(value_col, 'median'),
+        lat=('lat', 'mean'),
+        lon=('lon', 'mean'),
+        cnt=('id', 'count') if 'id' in df.columns else (value_col, 'count')
+    ).reset_index()
+
+    zone_geo = zone_geo[zone_geo['cnt'] >= 15].dropna()
+    coords = zone_geo[['lat', 'lon']].values
+    vals = zone_geo['val'].values
+    n = len(vals)
+
+    if n < 5:
+        return {'error': 'Insufficient spatial zones for Moran analysis'}
+
+    dist_mat = cdist(coords, coords, metric='euclidean')
+    np.fill_diagonal(dist_mat, np.inf)
+    W = 1.0 / dist_mat
+    row_sums = W.sum(axis=1, keepdims=True)
+    W_std = W / row_sums
+
+    z = vals - vals.mean()
+    s0 = W_std.sum()
+    numerator = np.sum(W_std * np.outer(z, z))
+    denominator = np.sum(z**2)
+    moran_i = float((n / s0) * (numerator / denominator))
+    expected_i = float(-1.0 / (n - 1))
+
+    # Monte Carlo permutation test
+    perm_dist = []
+    np.random.seed(42)
+    for _ in range(n_permutations):
+        z_perm = np.random.permutation(z)
+        num_p = np.sum(W_std * np.outer(z_perm, z_perm))
+        perm_dist.append((n / s0) * (num_p / denominator))
+
+    perm_dist = np.array(perm_dist)
+    p_val = float((np.sum(perm_dist >= moran_i) + 1) / (len(perm_dist) + 1))
+    z_score = float((moran_i - perm_dist.mean()) / (perm_dist.std() + 1e-9))
+
+    return {
+        'n_zones': n,
+        'moran_i': moran_i,
+        'expected_i': expected_i,
+        'z_score': z_score,
+        'pseudo_p_val': p_val,
+        'is_spatially_clustered': p_val < 0.05 and moran_i > expected_i
+    }
+
+
+def run_hedonic_price_decomposition(df_sec: pd.DataFrame, sample_size: int = 10000, random_state: int = 42) -> dict:
+    """
+    Fit an econometric log-linear hedonic regression model via statsmodels OLS to decompose marginal
+    price elasticity of physical, spatial, and institutional attributes.
+    """
+    df = df_sec.dropna(subset=['price_usd', 'area_sqft', 'bedrooms', 'to_burj_khalifa_km', 'metro_distance_min', 'property_age', 'floor_ratio']).copy()
+    df = df[(df['price_usd'] >= 50000) & (df['area_sqft'] >= 200) & (df['area_sqft'] <= 15000)]
+    
+    if len(df) > sample_size:
+        df = df.sample(sample_size, random_state=random_state)
+
+    df['log_price'] = np.log(df['price_usd'])
+    df['log_area'] = np.log(df['area_sqft'])
+    df['is_freehold_num'] = df['is_freehold'].astype(float) if 'is_freehold' in df.columns else 1.0
+
+    view_dummies = pd.get_dummies(df['view'], prefix='view', drop_first=True, dtype=float) if 'view' in df.columns else pd.DataFrame(index=df.index)
+
+    base_cols = ['log_area', 'bedrooms', 'to_burj_khalifa_km', 'metro_distance_min', 'property_age', 'floor_ratio', 'is_freehold_num', 'is_brand_new', 'is_penthouse_tier']
+    X = pd.concat([df[base_cols], view_dummies], axis=1).astype(float)
+    X = sm.add_constant(X)
+    y = df['log_price'].astype(float)
+
+    model = sm.OLS(y, X).fit()
+
+    return {
+        'rsquared': float(model.rsquared),
+        'rsquared_adj': float(model.rsquared_adj),
+        'fvalue': float(model.fvalue),
+        'pvalues': model.pvalues.to_dict(),
+        'params': model.params.to_dict(),
+        'summary_str': str(model.summary())
+    }
+
+
+def compute_supply_pipeline_analysis(df_off: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Examine developer off-plan delivery timelines (2024-2028+) to identify supply concentration risks.
+    """
+    df = df_off.dropna(subset=['handover_year', 'price_per_sqft_usd']).copy()
+    pipeline_yr = df.groupby('handover_year').agg(
+        listings_count=('id', 'count') if 'id' in df.columns else ('price_per_sqft_usd', 'count'),
+        mean_sqft_rate=('price_per_sqft_usd', 'mean'),
+        median_price_usd=('price_usd', 'median')
+    ).reset_index()
+
+    comm_pipeline = df.groupby('community').agg(
+        total_listings=('id', 'count') if 'id' in df.columns else ('price_per_sqft_usd', 'count'),
+        median_handover=('handover_year', 'median'),
+        median_rate_usd=('price_per_sqft_usd', 'median')
+    ).sort_values('total_listings', ascending=False).head(10).reset_index()
+
+    return pipeline_yr, comm_pipeline
