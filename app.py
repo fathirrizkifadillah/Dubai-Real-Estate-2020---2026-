@@ -22,47 +22,148 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ----------------- MINIMALIST INSTITUTIONAL UTILITY STYLING -----------------
-# Native theming handles 95% of styling via .streamlit/config.toml.
-# Scoped CSS here only refines typography scale, metric card polish, and container borders.
+# ----------------- INSTITUTIONAL LUXURY DESIGN SYSTEM -----------------
+# Deliberate design tokens eliminating generic AI defaults and adhering to institutional fintech standards.
 st.html("""
     <style>
-    /* Institutional header refinements */
-    h1, h2, h3, h4 {
+    /* Institutional Design Variables */
+    :root {
+        --bg-main: #090d16;
+        --bg-card: #111726;
+        --border-subtle: #1e293b;
+        --border-accent: rgba(197, 168, 128, 0.35);
+        --gold-primary: #c5a880;
+        --gold-hover: #d8bc95;
+        --emerald-alpha: #10b981;
+        --crimson-risk: #ef4444;
+        --sky-transit: #38bdf8;
+        --text-headline: #f8fafc;
+        --text-sub: #94a3b8;
+        --text-muted: #64748b;
+    }
+
+    /* Typography & Hierarchy */
+    h1, h2, h3, h4, h5, h6 {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        letter-spacing: -0.02em !important;
+        letter-spacing: -0.025em !important;
         font-weight: 600 !important;
+        color: var(--text-headline) !important;
     }
-    
-    /* Subtle container enhancement */
+
+    /* Container Cards with Elevation & Micro-Interaction */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border-radius: 8px !important;
+        border: 1px solid var(--border-subtle) !important;
+        background-color: var(--bg-card) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    [data-testid="stVerticalBlockBorderWrapper"]:hover {
+        border-color: var(--border-accent) !important;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+    }
+
+    /* Metric Typography Alignment */
     [data-testid="stMetric"] {
-        padding: 4px 8px;
+        padding: 6px 8px !important;
     }
-    
+
     [data-testid="stMetricValue"] {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         font-variant-numeric: tabular-nums !important;
-        font-size: 1.6rem !important;
-        font-weight: 600 !important;
-    }
-    
-    [data-testid="stMetricLabel"] {
-        font-size: 0.78rem !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
-        color: #94a3b8 !important;
+        font-size: 1.65rem !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em !important;
+        color: var(--text-headline) !important;
     }
 
-    /* Subdued border divider */
+    [data-testid="stMetricLabel"] {
+        font-size: 0.76rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        color: var(--text-sub) !important;
+        font-weight: 600 !important;
+    }
+
+    /* Modern Clean Tabs */
+    [data-testid="stTabs"] button[data-baseweb="tab"] {
+        font-size: 0.88rem !important;
+        font-weight: 500 !important;
+        color: var(--text-sub) !important;
+        padding: 10px 18px !important;
+        border-radius: 6px 6px 0 0 !important;
+        transition: all 0.2s ease-in-out !important;
+    }
+
+    [data-testid="stTabs"] button[data-baseweb="tab"]:hover {
+        color: var(--text-headline) !important;
+        background-color: rgba(255, 255, 255, 0.03) !important;
+    }
+
+    [data-testid="stTabs"] button[aria-selected="true"] {
+        color: var(--gold-primary) !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid var(--gold-primary) !important;
+    }
+
+    /* Premium Button Treatment */
+    .stButton > button {
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.01em !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .stButton > button[kind="primary"] {
+        background-color: var(--gold-primary) !important;
+        color: #000000 !important;
+        border: none !important;
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        background-color: var(--gold-hover) !important;
+        box-shadow: 0 0 16px rgba(197, 168, 128, 0.45) !important;
+    }
+
+    /* Input Fields */
+    div[data-baseweb="select"] > div, .stNumberInput input, .stTextInput input {
+        border-radius: 6px !important;
+        border-color: var(--border-subtle) !important;
+        background-color: #0c101c !important;
+        color: var(--text-headline) !important;
+    }
+
+    /* Dataframe & Tables */
+    .stDataFrame {
+        border-radius: 8px !important;
+        border: 1px solid var(--border-subtle) !important;
+        overflow: hidden !important;
+    }
+
+    /* Subtle Dividers */
     hr {
         border-color: rgba(255, 255, 255, 0.07) !important;
         margin: 1.2rem 0 !important;
     }
-    
-    /* Code block and table padding */
-    .stDataFrame {
-        border-radius: 6px;
-        overflow: hidden;
+
+    /* Custom Financial Status Banners */
+    .deal-verdict-card {
+        border-radius: 8px;
+        padding: 18px 22px;
+        margin: 14px 0;
+        border: 1px solid;
+    }
+    .deal-verdict-card.undervalued {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.03) 100%);
+        border-color: rgba(16, 185, 129, 0.45);
+    }
+    .deal-verdict-card.overpriced {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.14) 0%, rgba(239, 68, 68, 0.03) 100%);
+        border-color: rgba(239, 68, 68, 0.45);
+    }
+    .deal-verdict-card.fair {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.14) 0%, rgba(56, 189, 248, 0.03) 100%);
+        border-color: rgba(56, 189, 248, 0.45);
     }
     </style>
 """)
@@ -97,8 +198,18 @@ with st.spinner("Initializing institutional data engine..."):
 
 # ----------------- SIDEBAR CONTROLS & NAVIGATION -----------------
 with st.sidebar:
-    st.markdown("### DUBAI REAL ESTATE")
-    st.caption("Market Intelligence Platform | Coverage: 2020–2026")
+    st.markdown("""
+        <div style="padding: 2px 0 12px 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px; color: #c5a880;">❖</span>
+                <span style="font-size: 16px; font-weight: 700; letter-spacing: 0.05em; color: #f8fafc;">DUBAI REAL ESTATE</span>
+            </div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 3px;">Institutional Intelligence & Decision Platform</div>
+            <div style="margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; font-size: 10px; color: #10b981; font-weight: 600;">
+                <span>●</span> 2020–2026 DLD Aggregated & Listed
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
     st.divider()
     
     # Currency and Metric Unit Toggles
@@ -116,16 +227,16 @@ with st.sidebar:
     
     st.divider()
     
-    # Navigation Hierarchy using Material Symbols
-    st.markdown("**Navigation**")
+    # Navigation Hierarchy
+    st.markdown("**Intelligence Modules**")
     menu = st.radio(
         "Navigation",
         [
             "Market Overview & Spatial Macro",
             "Yield & District Opportunity",
             "Developer Brand Equity",
-            "Valuation Intelligence (ML)",
-            "Investment & Mortgage Simulator",
+            "Valuation Intelligence & Deal Screener (AI)",
+            "Portfolio DSS & Stress Simulator",
             "Price Forecasting (Prophet)",
             "Data Quality & Methodology"
         ],
@@ -134,9 +245,12 @@ with st.sidebar:
     )
     
     st.divider()
-    st.caption(f":material/check_circle: Verified listings: {len(secondary) + len(offplan) + len(rentals):,}")
-    st.caption(":material/database: DLD Aggregated & Listed Records")
-    st.caption(":material/shield: Institutional Research Scope")
+    with st.container(border=True):
+        st.markdown("<div style='font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;'>Coverage Telemetry</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='font-size: 12px; color: #cbd5e1; margin-bottom: 3px;'>• Tracked Listings: <b>{len(secondary) + len(offplan) + len(rentals):,}</b></div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='font-size: 12px; color: #cbd5e1; margin-bottom: 3px;'>• Transit Network: <b>{len(metro_stations)}</b> Metro stations</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size: 12px; color: #cbd5e1;'>• Temporal Scope: <b>Jan 2020 – Apr 2026</b></div>", unsafe_allow_html=True)
+
 
 # Formatters bound to active user preferences
 def fmt_m(usd_amt: float, compact: bool = False) -> str:
@@ -204,11 +318,13 @@ if menu == "Market Overview & Spatial Macro":
     st.divider()
 
     # Spatial Map Section
-    map_head, map_ctrl = st.columns([3, 1], vertical_alignment="bottom")
+    map_head, map_c1, map_c2 = st.columns([2, 1, 1], vertical_alignment="bottom")
     with map_head:
         st.subheader("Spatial Valuation & Infrastructure Network")
         st.caption("Active listing density and unit rates overlaid with the Dubai Metro transit corridors and Downtown Burj Khalifa core.")
-    with map_ctrl:
+    with map_c1:
+        map_cat = st.selectbox("Property Type Filter", ["All Categories", "Apartment", "Villa"], index=0)
+    with map_c2:
         map_theme = st.selectbox(
             "Basemap Style",
             ["Dark Architectural (OpenFreeMap)", "Dark Canvas (ESRI)", "OpenStreetMap"],
@@ -217,10 +333,14 @@ if menu == "Market Overview & Spatial Macro":
     
     # Fast deterministic sampling for interactive rendering
     @st.cache_data
-    def get_map_sample(df_sec):
-        return df_sec.sample(n=min(8000, len(df_sec)), random_state=42).copy()
+    def get_map_sample(df_sec, cat_filter):
+        if cat_filter != "All Categories":
+            df_filtered = df_sec[df_sec['property_category'] == cat_filter]
+        else:
+            df_filtered = df_sec
+        return df_filtered.sample(n=min(8000, len(df_filtered)), random_state=42).copy()
     
-    map_df = get_map_sample(secondary)
+    map_df = get_map_sample(secondary, map_cat)
     map_df['plot_rate'] = convert_r(map_df['price_per_sqft_usd'])
     
     if map_theme == "Dark Architectural (OpenFreeMap)":
@@ -742,9 +862,9 @@ elif menu == "Developer Brand Equity":
 
 
 # ==============================================================================
-# VIEW 4: VALUATION INTELLIGENCE (ML)
+# VIEW 4: VALUATION INTELLIGENCE & DEAL SCREENER (AI)
 # ==============================================================================
-elif menu == "Valuation Intelligence (ML)":
+elif menu == "Valuation Intelligence & Deal Screener (AI)":
     st.title("Valuation Intelligence Engine")
     st.markdown("Automated Valuation Models (AVM) for ready secondary resale and off-plan launch projects.")
     st.divider()
@@ -955,19 +1075,41 @@ elif menu == "Valuation Intelligence (ML)":
                 st.divider()
                 st.markdown("### AI Investment Screening Diagnosis")
 
+                verdict_class_name = "undervalued" if pred_class == "Undervalued" else ("overpriced" if pred_class == "Overpriced" else "fair")
+                badge_color = "#10b981" if pred_class == "Undervalued" else ("#ef4444" if pred_class == "Overpriced" else "#38bdf8")
+                signal = "BUY / ACQUIRE" if pred_class == "Undervalued" else ("AVOID / RENEGOTIATE" if pred_class == "Overpriced" else "NEUTRAL / HOLD")
+
+                st.markdown(f"""
+                <div class="deal-verdict-card {verdict_class_name}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: {badge_color};">
+                                AI Investment Screening Verdict
+                            </div>
+                            <div style="font-size: 24px; font-weight: 800; color: #f8fafc; margin-top: 4px;">
+                                {pred_class} Investment Opportunity
+                            </div>
+                            <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">
+                                Asking Price: <b>{fmt_m(asking_price_usd)}</b> | Valuation Fair Value: <b>{fmt_m(fair_price_usd)}</b> ({discount_pct:+.1f}%) | Model Confidence: <b>{proba_dict.get(pred_class, 0):.1%}</b>
+                            </div>
+                        </div>
+                        <div style="text-align: right; background: rgba(0,0,0,0.35); padding: 8px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Recommended Directive</div>
+                            <div style="font-size: 18px; font-weight: 800; color: {badge_color}; margin-top: 2px;">{signal}</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
                 d_c1, d_c2, d_c3 = st.columns(3)
                 with d_c1:
                     with st.container(border=True):
                         st.metric("Asking vs Fair Value Gap", f"{discount_pct:+.1f}%", f"Fair Value: {fmt_m(fair_price_usd)}", delta_color="inverse")
                 with d_c2:
                     with st.container(border=True):
-                        badge_color = "#10b981" if pred_class == "Undervalued" else ("#ef4444" if pred_class == "Overpriced" else "#0284c7")
-                        st.markdown(f"**Deal Classification**")
-                        st.markdown(f"<h3 style='color: {badge_color}; margin:0;'>{pred_class} Deal</h3>", unsafe_allow_html=True)
-                        st.caption(f"Confidence: {proba_dict.get(pred_class, 0):.1%}")
+                        st.metric("Model Verdict", f"{pred_class} Deal", f"Confidence: {proba_dict.get(pred_class, 0):.1%}", delta_color="normal")
                 with d_c3:
                     with st.container(border=True):
-                        signal = "BUY / ACQUIRE" if pred_class == "Undervalued" else ("AVOID / RENEGOTIATE" if pred_class == "Overpriced" else "NEUTRAL / HOLD")
                         st.metric("Algorithmic Action Signal", signal, f"Holdout Accuracy: {clf_dict['accuracy']:.1%}", delta_color="off")
 
                 # Probability Breakdown
@@ -1043,78 +1185,354 @@ elif menu == "Valuation Intelligence (ML)":
 
 
 # ==============================================================================
-# VIEW 5: INVESTMENT & MORTGAGE SIMULATOR
+# VIEW 5: PORTFOLIO DSS & STRESS SIMULATOR
 # ==============================================================================
-elif menu == "Investment & Mortgage Simulator":
-    st.title("Investment & Mortgage Simulator")
-    st.markdown("Interactive buy-to-let financial modeling: debt service (EMI), net rental yields, net cash flow, and equity payback.")
-    st.divider()
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        st.subheader("Property & Financing Terms")
-        default_price_usd = 600000.0
-        prop_price_input = st.number_input(
-            f"Purchase Price ({curr_label})",
-            min_value=10000.0, max_value=50000000.0,
-            value=float(core.convert_currency(default_price_usd, to_aed=is_aed)),
-            step=25000.0
-        )
-        prop_price_usd = prop_price_input / (core.AED_PEG if is_aed else 1.0)
-        
-        down_pct = st.slider("Down Payment (%)", min_value=15, max_value=100, value=25, step=5)
-        mortgage_rate = st.slider("Mortgage Interest Rate (%)", min_value=2.0, max_value=9.0, value=5.25, step=0.25)
-        loan_years = st.slider("Loan Tenor (Years)", min_value=5, max_value=30, value=25, step=5)
-        
-    with c2:
-        st.subheader("Rental & Operational Assumptions")
-        default_rent_usd = prop_price_usd * 0.075
-        annual_rent_input = st.number_input(
-            f"Expected Annual Rent ({curr_label})",
-            min_value=5000.0, max_value=5000000.0,
-            value=float(core.convert_currency(default_rent_usd, to_aed=is_aed)),
-            step=5000.0
-        )
-        annual_rent_usd = annual_rent_input / (core.AED_PEG if is_aed else 1.0)
-        
-        default_sc_display = float(round(convert_r(4.0), 1))
-        sc_input = st.slider(f"Annual Service Charge ({curr_label}/{unit_label})", min_value=1.0, max_value=float(round(convert_r(20.0), 1)), value=default_sc_display, step=0.5)
-        service_charge_usd_per_sqft = sc_input / (core.AED_PEG if is_aed else 1.0) / (core.M2_TO_SQFT if is_m2 else 1.0)
-        
-        default_size = 1100 if not is_m2 else int(1100 * core.SQFT_TO_M2)
-        prop_size_input = st.number_input(f"Property Size ({unit_label})", min_value=20, max_value=10000, value=default_size, step=50)
-        prop_size_sqft = prop_size_input if not is_m2 else (prop_size_input * core.M2_TO_SQFT)
-        vacancy_pct = st.slider("Vacancy & Maintenance Allowance (%)", min_value=0, max_value=15, value=5, step=1)
-        
-    # Execute authoritative shared financial model
-    fin = core.simulate_buy_to_let_cashflow(
-        purchase_price_usd=prop_price_usd,
-        annual_rent_usd=annual_rent_usd,
-        property_size_sqft=prop_size_sqft,
-        down_payment_pct=down_pct,
-        mortgage_rate_pct=mortgage_rate,
-        loan_tenor_years=loan_years,
-        service_charge_usd_per_sqft=service_charge_usd_per_sqft,
-        vacancy_maintenance_pct=vacancy_pct
+elif menu == "Portfolio DSS & Stress Simulator":
+    st.title("Portfolio Decision Support & Macro Stress Simulator")
+    st.markdown(
+        "Institutional real estate capital allocation engine: buy-to-let mortgage debt service, "
+        "algorithmic multi-asset portfolio optimization, and adverse macroeconomic stress testing."
     )
-    
     st.divider()
-    st.subheader("Cash-Flow & Return Dashboard")
-    
-    m1, m2, m3, m4 = st.columns(4)
-    with m1:
-        with st.container(border=True):
-            st.metric("Net Rental Yield", f"{fin['net_yield_pct']:.2f}%", f"Gross: {fin['gross_yield_pct']:.2f}%", delta_color="normal")
-    with m2:
-        with st.container(border=True):
-            st.metric("Monthly Mortgage EMI", fmt_m(fin['monthly_emi_usd']), f"{loan_years} yr @ {mortgage_rate:.2f}%", delta_color="off")
-    with m3:
-        with st.container(border=True):
-            st.metric("Net Annual Cash Flow", f"{fmt_m(fin['net_annual_cashflow_usd'])}/yr", "After debt & charges", delta_color="normal" if fin['net_annual_cashflow_usd'] >= 0 else "inverse")
-    with m4:
-        with st.container(border=True):
-            payback_str = f"{fin['payback_years']:.1f} yrs" if fin['payback_years'] is not None else "N/A"
-            st.metric("Cash-on-Cash Return", f"{fin['cash_on_cash_pct']:.1f}%", f"Payback: {payback_str}", delta_color="normal")
+
+    dss_tab1, dss_tab2, dss_tab3 = st.tabs([
+        "Single Asset Buy-to-Let Modeler",
+        "Strategic Portfolio Allocator (DSS)",
+        "Macroeconomic 'What-If' Stress Testing"
+    ])
+
+    with dss_tab1:
+        st.subheader("Buy-to-Let Asset Cash-Flow & Amortization Modeler")
+        st.caption("Underwrite single residential acquisitions accounting for DLD transfer fees, service charges, vacancy allowances, and mortgage debt service.")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**Acquisition & Financing Terms**")
+            default_price_usd = 600000.0
+            prop_price_input = st.number_input(
+                f"Purchase Price ({curr_label})",
+                min_value=10000.0, max_value=50000000.0,
+                value=float(core.convert_currency(default_price_usd, to_aed=is_aed)),
+                step=25000.0, key='b2l_price'
+            )
+            prop_price_usd = prop_price_input / (core.AED_PEG if is_aed else 1.0)
+            
+            down_pct = st.slider("Down Payment (%)", min_value=15, max_value=100, value=25, step=5, key='b2l_down')
+            mortgage_rate = st.slider("Mortgage Interest Rate (%)", min_value=2.0, max_value=9.0, value=5.25, step=0.25, key='b2l_rate')
+            loan_years = st.slider("Loan Tenor (Years)", min_value=5, max_value=30, value=25, step=5, key='b2l_tenor')
+
+        with c2:
+            st.markdown("**Rental Yield & Operational Assumptions**")
+            default_rent_usd = prop_price_usd * 0.075
+            annual_rent_input = st.number_input(
+                f"Expected Annual Rent ({curr_label})",
+                min_value=5000.0, max_value=5000000.0,
+                value=float(core.convert_currency(default_rent_usd, to_aed=is_aed)),
+                step=5000.0, key='b2l_rent'
+            )
+            annual_rent_usd = annual_rent_input / (core.AED_PEG if is_aed else 1.0)
+            
+            default_sc_display = float(round(convert_r(4.0), 1))
+            sc_input = st.slider(
+                f"Annual Service Charge ({curr_label}/{unit_label})",
+                min_value=1.0, max_value=float(round(convert_r(20.0), 1)),
+                value=default_sc_display, step=0.5, key='b2l_sc'
+            )
+            service_charge_usd_per_sqft = sc_input / (core.AED_PEG if is_aed else 1.0) / (core.M2_TO_SQFT if is_m2 else 1.0)
+            
+            default_size = 1100 if not is_m2 else int(1100 * core.SQFT_TO_M2)
+            prop_size_input = st.number_input(f"Property Size ({unit_label})", min_value=20, max_value=10000, value=default_size, step=50, key='b2l_size')
+            prop_size_sqft = prop_size_input if not is_m2 else (prop_size_input * core.M2_TO_SQFT)
+            vacancy_pct = st.slider("Vacancy & Maintenance Allowance (%)", min_value=0, max_value=15, value=5, step=1, key='b2l_vac')
+
+        fin = core.simulate_buy_to_let_cashflow(
+            purchase_price_usd=prop_price_usd,
+            annual_rent_usd=annual_rent_usd,
+            property_size_sqft=prop_size_sqft,
+            down_payment_pct=down_pct,
+            mortgage_rate_pct=mortgage_rate,
+            loan_tenor_years=loan_years,
+            service_charge_usd_per_sqft=service_charge_usd_per_sqft,
+            vacancy_maintenance_pct=vacancy_pct
+        )
+
+        st.divider()
+        st.markdown("### Institutional Cash-Flow & Yield Profile")
+        m1, m2, m3, m4 = st.columns(4)
+        with m1:
+            with st.container(border=True):
+                st.metric("Net Rental Yield", f"{fin['net_yield_pct']:.2f}%", f"Gross: {fin['gross_yield_pct']:.2f}%", delta_color="normal")
+        with m2:
+            with st.container(border=True):
+                st.metric("Monthly Mortgage EMI", fmt_m(fin['monthly_emi_usd']), f"{loan_years} yr @ {mortgage_rate:.2f}%", delta_color="off")
+        with m3:
+            with st.container(border=True):
+                st.metric("Net Annual Cash Flow", f"{fmt_m(fin['net_annual_cashflow_usd'])}/yr", "After debt & charges", delta_color="normal" if fin['net_annual_cashflow_usd'] >= 0 else "inverse")
+        with m4:
+            with st.container(border=True):
+                payback_str = f"{fin['payback_years']:.1f} yrs" if fin['payback_years'] is not None else "N/A"
+                st.metric("Cash-on-Cash Return", f"{fin['cash_on_cash_pct']:.1f}%", f"Payback: {payback_str}", delta_color="normal")
+
+        # Visual Cash Flow Waterfall Breakdown
+        st.markdown("**Annual Operational Cash-Flow Waterfall**")
+        wf_base_rent = fin['effective_rent_usd'] / (1.0 - vacancy_pct/100.0) if vacancy_pct < 100 else annual_rent_usd
+        wf_data = pd.DataFrame([
+            {"Stage": "1. Gross Potential Rent", "Amount": wf_base_rent, "Type": "Revenue"},
+            {"Stage": "2. Vacancy & Maintenance Allowance", "Amount": -(wf_base_rent - fin['effective_rent_usd']), "Type": "Leakage"},
+            {"Stage": "3. Annual Service Charges", "Amount": -fin['annual_service_charge_usd'], "Type": "Expense"},
+            {"Stage": "4. Net Operating Income (NOI)", "Amount": fin['net_operating_income_usd'], "Type": "Operating Income"},
+            {"Stage": "5. Annual Debt Service (EMI)", "Amount": -fin['annual_mortgage_usd'], "Type": "Debt Service"},
+            {"Stage": "6. Net Discretionary Cash Flow", "Amount": fin['net_annual_cashflow_usd'], "Type": "Net Profit / Loss"}
+        ])
+        wf_display = wf_data.copy()
+        wf_display['Amount'] = wf_display['Amount'].apply(lambda x: fmt_m(x))
+        st.dataframe(wf_display, hide_index=True, width="stretch")
+
+    with dss_tab2:
+        st.subheader("Strategic Capital Allocation & Portfolio Engineering (DSS)")
+        st.caption(
+            "Algorithmic multi-asset portfolio optimizer allocating institutional capital across empirical Dubai cluster archetypes "
+            "based on target investment profile and UAE Golden Visa qualification."
+        )
+
+        p_col1, p_col2 = st.columns([1, 1])
+        with p_col1:
+            st.markdown("**Deployable Capital Budget**")
+            preset_cols = st.columns(4)
+            chosen_preset = None
+            with preset_cols[0]:
+                if st.button("$250k", key='btn_250k'):
+                    chosen_preset = 250000.0
+            with preset_cols[1]:
+                if st.button("$500k", key='btn_500k'):
+                    chosen_preset = 500000.0
+            with preset_cols[2]:
+                if st.button("$1.0M", key='btn_1m'):
+                    chosen_preset = 1000000.0
+            with preset_cols[3]:
+                if st.button("$2.5M", key='btn_2m5'):
+                    chosen_preset = 2500000.0
+
+            if chosen_preset is not None:
+                st.session_state['dss_budget_usd'] = chosen_preset
+
+            default_budget_usd = st.session_state.get('dss_budget_usd', 1000000.0)
+            default_budget_input = default_budget_usd if not is_aed else (default_budget_usd * core.AED_PEG)
+            budget_input = st.number_input(
+                f"Total Investment Equity ({curr_label})",
+                min_value=50000.0, max_value=50000000.0,
+                value=float(default_budget_input), step=50000.0, key='dss_budget_input'
+            )
+            budget_usd = budget_input if not is_aed else (budget_input / core.AED_PEG)
+
+        with p_col2:
+            st.markdown("**Investment Mandate & Horizon**")
+            risk_arch = st.selectbox(
+                "Strategic Mandate Archetype",
+                [
+                    "Balanced Institutional Barbell (50/50)",
+                    "Cash-Flow Maximizer (High Yield)",
+                    "Capital Growth & Prestige (Prime Core)"
+                ],
+                index=0, key='dss_arch'
+            )
+            horizon_yrs = st.slider("Target Hold Horizon (Years)", min_value=3, max_value=10, value=5, step=1, key='dss_horizon')
+
+        # Run portfolio optimization engine
+        port = core.optimize_portfolio_allocation(
+            total_capital_usd=budget_usd,
+            risk_archetype=risk_arch,
+            target_hold_years=horizon_yrs
+        )
+
+        st.divider()
+
+        # Golden Visa Status Banner
+        if port['is_golden_visa']:
+            st.markdown(f"""
+            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 12px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 13px; font-weight: 700; color: #10b981; letter-spacing: 0.05em;">✓ UAE 10-YEAR GOLDEN VISA QUALIFIED</span>
+                    <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">Deployable portfolio equity of <b>{fmt_m(port['total_capital_usd'])}</b> satisfies the AED 2,000,000 (~$544,500) real estate residency statutory threshold.</div>
+                </div>
+                <div style="font-size: 18px; color: #10b981; font-weight: 800;">AED 2M+</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            deficit_usd = 544500.0 - port['total_capital_usd']
+            st.markdown(f"""
+            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px 18px; margin-bottom: 16px;">
+                <span style="font-size: 12px; font-weight: 700; color: #38bdf8; letter-spacing: 0.05em;">ⓘ UAE GOLDEN VISA THRESHOLD NOTICE</span>
+                <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">AED 2,000,000 ($544,500) required for 10-year residency visa. Additional equity required to qualify: <b>{fmt_m(deficit_usd)}</b>.</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown(f"**Strategy Focus**: {port['description']}")
+
+        pk1, pk2, pk3, pk4 = st.columns(4)
+        with pk1:
+            with st.container(border=True):
+                st.metric("Blended Net Yield", f"{port['net_yield_pct']:.2f}%", f"Gross: {port['gross_yield_pct']:.2f}%", delta_color="normal")
+        with pk2:
+            with st.container(border=True):
+                st.metric("Projected Annual Net Cash", f"{fmt_m(port['annual_net_rental_usd'])}/yr", "Net dividends", delta_color="normal")
+        with pk3:
+            with st.container(border=True):
+                st.metric(f"Terminal Value ({horizon_yrs}yr)", fmt_m(port['terminal_asset_value_usd']), f"Apprec: +{port['annual_appreciation_pct']:.1f}%/yr", delta_color="normal")
+        with pk4:
+            with st.container(border=True):
+                st.metric(f"Total Projected ROI", f"{port['total_roi_pct']:.1f}%", f"IRR: {port['annualized_irr_pct']:.2f}%", delta_color="normal")
+
+        st.markdown("### Algorithmic Multi-Asset Allocation Schedule")
+        alloc_df = pd.DataFrame(port['recommended_assets'])
+        st.dataframe(alloc_df, hide_index=True, width="stretch")
+
+        # Multi-Year Equity Growth Projection Chart
+        years_arr = list(range(0, horizon_yrs + 1))
+        eq_arr = [port['total_capital_usd'] * ((1.0 + port['annual_appreciation_pct'] / 100.0) ** y) for y in years_arr]
+        cum_cf_arr = [port['annual_net_rental_usd'] * y for y in years_arr]
+        tot_wealth_arr = [eq_arr[i] + cum_cf_arr[i] for i in range(len(years_arr))]
+
+        fig_eq = go.Figure()
+        fig_eq.add_trace(go.Bar(x=years_arr, y=cum_cf_arr, name="Cumulative Net Rental Dividends", marker_color="#38bdf8"))
+        fig_eq.add_trace(go.Bar(x=years_arr, y=eq_arr, name="Asset Capital Equity Value", marker_color="#c5a880"))
+        fig_eq.add_trace(go.Scatter(x=years_arr, y=tot_wealth_arr, name="Total Cumulative Wealth", line=dict(color="#10b981", width=3, dash="dot")))
+        fig_eq.update_layout(
+            barmode='stack', height=360, margin=dict(l=10, r=10, t=30, b=10),
+            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(title="Hold Timeline (Years)", dtick=1, showgrid=True, gridcolor='rgba(255,255,255,0.06)'),
+            yaxis=dict(title=f"Portfolio Wealth Value ({curr_label})", showgrid=True, gridcolor='rgba(255,255,255,0.06)'),
+            legend=dict(bgcolor="rgba(12, 16, 28, 0.8)", orientation="h", y=1.1, x=0.01),
+            template="plotly_dark"
+        )
+        st.plotly_chart(fig_eq, width="stretch")
+
+    with dss_tab3:
+        st.subheader("Macroeconomic 'What-If' Adverse Stress Testing")
+        st.caption(
+            "Stress test buy-to-let leverage against interest rate shocks (CBUAE base rate hikes) and rental market downturns. "
+            "Evaluates Debt Service Coverage Ratio (DSCR) against institutional credit risk thresholds."
+        )
+
+        st_c1, st_c2 = st.columns(2)
+        with st_c1:
+            st.markdown("**Property & Baseline Financing**")
+            st_price_usd = 600000.0
+            st_price_input = st.number_input(
+                f"Asset Valuation ({curr_label})",
+                min_value=50000.0, max_value=20000000.0,
+                value=float(core.convert_currency(st_price_usd, to_aed=is_aed)),
+                step=25000.0, key='st_p_in'
+            )
+            st_prop_usd = st_price_input / (core.AED_PEG if is_aed else 1.0)
+            
+            st_rent_usd = st_prop_usd * 0.075
+            st_rent_input = st.number_input(
+                f"Baseline Gross Rent ({curr_label}/yr)",
+                min_value=5000.0, max_value=2000000.0,
+                value=float(core.convert_currency(st_rent_usd, to_aed=is_aed)),
+                step=5000.0, key='st_r_in'
+            )
+            st_annual_rent_usd = st_rent_input / (core.AED_PEG if is_aed else 1.0)
+            
+            st_base_rate = st.slider("Base Mortgage Rate (%)", min_value=2.0, max_value=8.0, value=5.25, step=0.25, key='st_br')
+            st_down_pct = st.slider("Equity Down Payment (%)", min_value=15, max_value=80, value=25, step=5, key='st_dp')
+
+        with st_c2:
+            st.markdown("**Macroeconomic Shock Scenarios**")
+            st_rate_shock = st.slider(
+                "Interest Rate Hike Shock (+bps)",
+                min_value=0, max_value=300, value=150, step=25,
+                help="+100 bps equals +1.00% increase to borrowing cost",
+                key='st_shock_bps'
+            )
+            st_rent_drop = st.slider(
+                "Rental Market Contraction (-%)",
+                min_value=0, max_value=30, value=10, step=5,
+                help="Assumes city-wide leasing price correction or prolonged vacancy",
+                key='st_rent_drop'
+            )
+            st_sc_rate = st.slider(
+                f"Service Charge ({curr_label}/{unit_label})",
+                min_value=1.0, max_value=float(round(convert_r(15.0), 1)),
+                value=float(round(convert_r(4.0), 1)), step=0.5, key='st_sc_rate'
+            )
+            st_sc_usd_sqft = st_sc_rate / (core.AED_PEG if is_aed else 1.0) / (core.M2_TO_SQFT if is_m2 else 1.0)
+
+        # Run stress test cash flow
+        stress = core.stress_test_cashflow(
+            purchase_price_usd=st_prop_usd,
+            annual_rent_usd=st_annual_rent_usd,
+            property_size_sqft=1100.0,
+            base_mortgage_rate_pct=st_base_rate,
+            rate_shock_bps=float(st_rate_shock),
+            rental_correction_pct=float(st_rent_drop),
+            down_payment_pct=float(st_down_pct),
+            service_charge_usd_per_sqft=st_sc_usd_sqft
+        )
+
+        st.divider()
+
+        # Institutional Risk Banner
+        st.markdown(f"""
+        <div style="background: rgba(0,0,0,0.3); border-left: 4px solid {stress['verdict_color']}; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: {stress['verdict_color']};">
+                        INSTITUTIONAL DEBT SERVICE STRESS VERDICT
+                    </span>
+                    <div style="font-size: 20px; font-weight: 800; color: #f8fafc; margin-top: 2px;">
+                        {stress['risk_verdict']}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 11px; color: #94a3b8;">Stressed DSCR Coverage</div>
+                    <div style="font-size: 22px; font-weight: 800; color: {stress['verdict_color']};">{stress['stressed_dscr']:.2f}x</div>
+                </div>
+            </div>
+            <div style="font-size: 13px; color: #cbd5e1; margin-top: 8px;">
+                <b>Directive</b>: {stress['action_directive']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        sm1, sm2, sm3, sm4 = st.columns(4)
+        with sm1:
+            with st.container(border=True):
+                st.metric("Base vs Stressed DSCR", f"{stress['stressed_dscr']:.2f}x", f"Base: {stress['base_dscr']:.2f}x ({stress['dscr_gap']:+.2f}x)", delta_color="inverse")
+        with sm2:
+            with st.container(border=True):
+                emi_delta = stress['stressed_monthly_emi_usd'] - stress['base_monthly_emi_usd']
+                st.metric("Stressed Monthly EMI", fmt_m(stress['stressed_monthly_emi_usd']), f"+{fmt_m(emi_delta)}/mo ({stress['stressed_rate_pct']:.2f}%)", delta_color="inverse")
+        with sm3:
+            with st.container(border=True):
+                st.metric("Stressed Net Cash Flow", f"{fmt_m(stress['stressed_annual_cashflow_usd'])}/yr", f"{fmt_m(stress['cashflow_gap_usd'])}/yr drop", delta_color="normal" if stress['stressed_annual_cashflow_usd'] >= 0 else "inverse")
+        with sm4:
+            with st.container(border=True):
+                st.metric("Max Rent Drop Breakeven", f"-{stress['breakeven_drop_pct']:.1f}%", "Zero cash-flow threshold", delta_color="off")
+
+        # Stress Bar Comparison Chart
+        fig_sc = go.Figure()
+        metrics_labels = ['Net Operating Income (NOI)', 'Annual Debt Service (EMI)', 'Net Annual Cash Flow']
+        base_vals = [stress['base_noi_usd'], stress['base_annual_mortgage_usd'], stress['base_annual_cashflow_usd']]
+        stressed_vals = [stress['stressed_noi_usd'], stress['stressed_annual_mortgage_usd'], stress['stressed_annual_cashflow_usd']]
+
+        fig_sc.add_trace(go.Bar(x=metrics_labels, y=base_vals, name="Base Case Scenario", marker_color="#38bdf8"))
+        fig_sc.add_trace(go.Bar(x=metrics_labels, y=stressed_vals, name=f"Stressed Case (+{st_rate_shock}bps, -{st_rent_drop}%)", marker_color="#f87171"))
+        fig_sc.update_layout(
+            barmode='group', height=360, margin=dict(l=10, r=10, t=30, b=10),
+            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+            yaxis=dict(title=f"Annual Amount ({curr_label})", showgrid=True, gridcolor='rgba(255,255,255,0.06)'),
+            legend=dict(bgcolor="rgba(12, 16, 28, 0.8)", orientation="h", y=1.1, x=0.01),
+            template="plotly_dark"
+        )
+        st.plotly_chart(fig_sc, width="stretch")
+
+        st.info(
+            "**Institutional Banking Benchmark**: A Debt Service Coverage Ratio (DSCR) $\\ge 1.25\\times$ is required by commercial banks "
+            "for prime investment mortgages. A DSCR between $1.00\\times$ and $1.25\\times$ indicates tight cash buffers vulnerable to floating-rate cycles, "
+            "while DSCR $< 1.00\\times$ triggers immediate debt service shortfall requiring owner equity subsidies."
+        )
 
 
 # ==============================================================================

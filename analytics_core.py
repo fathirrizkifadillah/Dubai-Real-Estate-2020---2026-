@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.spatial.distance import cdist
-import statsmodels.api as sm
 
 # ----------------- CONSTANTS & CONVERSIONS -----------------
 AED_PEG: float = 3.6725
@@ -352,6 +351,8 @@ def run_hedonic_price_decomposition(df_sec: pd.DataFrame, sample_size: int = 100
     Fit an econometric log-linear hedonic regression model via statsmodels OLS to decompose marginal
     price elasticity of physical, spatial, and institutional attributes.
     """
+    import statsmodels.api as sm
+
     df = df_sec.dropna(subset=['price_usd', 'area_sqft', 'bedrooms', 'to_burj_khalifa_km', 'metro_distance_min', 'property_age', 'floor_ratio']).copy()
     df = df[(df['price_usd'] >= 50000) & (df['area_sqft'] >= 200) & (df['area_sqft'] <= 15000)]
     
@@ -399,3 +400,181 @@ def compute_supply_pipeline_analysis(df_off: pd.DataFrame) -> tuple[pd.DataFrame
     ).sort_values('total_listings', ascending=False).head(10).reset_index()
 
     return pipeline_yr, comm_pipeline
+
+
+# ----------------- DECISION SUPPORT SYSTEM (DSS) & PORTFOLIO ENGINE -----------------
+def stress_test_cashflow(
+    purchase_price_usd: float,
+    annual_rent_usd: float,
+    property_size_sqft: float,
+    base_mortgage_rate_pct: float = 5.25,
+    rate_shock_bps: float = 150.0,
+    base_vacancy_pct: float = 5.0,
+    rental_correction_pct: float = 10.0,
+    down_payment_pct: float = 25.0,
+    loan_tenor_years: int = 25,
+    service_charge_usd_per_sqft: float = 4.0,
+) -> dict[str, float | str]:
+    """
+    Simulate adverse macroeconomic shocks on buy-to-let property investments.
+    Computes Debt Service Coverage Ratio (DSCR), net cash-flow delta, and stress resilience verdict.
+    """
+    down_pct = max(0.0, min(100.0, down_payment_pct))
+    loan_amount_usd = purchase_price_usd * (1.0 - down_pct / 100.0)
+    initial_equity_usd = purchase_price_usd * (down_pct / 100.0) + (purchase_price_usd * DLD_TRANSFER_FEE_PCT)
+    annual_service_charge_usd = service_charge_usd_per_sqft * property_size_sqft
+
+    # --- BASE CASE ---
+    base_emi = calculate_mortgage_emi(loan_amount_usd, base_mortgage_rate_pct, loan_tenor_years)
+    base_annual_mortgage = base_emi * 12.0
+    base_eff_rent = annual_rent_usd * (1.0 - (base_vacancy_pct / 100.0))
+    base_noi = base_eff_rent - annual_service_charge_usd
+    base_annual_cf = base_noi - base_annual_mortgage
+    base_dscr = (base_noi / base_annual_mortgage) if base_annual_mortgage > 0 else 999.0
+    base_coc_pct = (base_annual_cf / initial_equity_usd * 100.0) if initial_equity_usd > 0 else 0.0
+
+    # --- STRESSED CASE ---
+    stressed_rate = base_mortgage_rate_pct + (rate_shock_bps / 100.0)
+    stressed_emi = calculate_mortgage_emi(loan_amount_usd, stressed_rate, loan_tenor_years)
+    stressed_annual_mortgage = stressed_emi * 12.0
+    stressed_rent = annual_rent_usd * (1.0 - (rental_correction_pct / 100.0))
+    stressed_eff_rent = stressed_rent * (1.0 - (base_vacancy_pct / 100.0))
+    stressed_noi = stressed_eff_rent - annual_service_charge_usd
+    stressed_annual_cf = stressed_noi - stressed_annual_mortgage
+    stressed_dscr = (stressed_noi / stressed_annual_mortgage) if stressed_annual_mortgage > 0 else 999.0
+    stressed_coc_pct = (stressed_annual_cf / initial_equity_usd * 100.0) if initial_equity_usd > 0 else 0.0
+
+    # Breakeven rental drop under base mortgage
+    # NOI = eff_rent - sc = base_annual_mortgage => eff_rent = base_annual_mortgage + sc
+    # rent * (1 - vac) = base_annual_mortgage + sc => rent_be = (base_annual_mortgage + sc) / (1 - vac)
+    vac_mult = (1.0 - (base_vacancy_pct / 100.0))
+    if vac_mult > 0 and annual_rent_usd > 0:
+        rent_breakeven_usd = (base_annual_mortgage + annual_service_charge_usd) / vac_mult
+        breakeven_drop_pct = max(0.0, ((annual_rent_usd - rent_breakeven_usd) / annual_rent_usd) * 100.0)
+    else:
+        breakeven_drop_pct = 0.0
+
+    # Institutional Risk Verdict
+    if stressed_dscr >= 1.25 and stressed_annual_cf > 0:
+        risk_verdict = "Resilient (Low Risk)"
+        verdict_color = "#10b981"
+        action_directive = "High debt-service buffer; resistant to aggressive rate cycles."
+    elif stressed_dscr >= 1.00 and stressed_annual_cf >= 0:
+        risk_verdict = "Marginal Buffer (Moderate Risk)"
+        verdict_color = "#f59e0b"
+        action_directive = "Cash flow remains positive but sensitive; consider higher initial down-payment."
+    else:
+        risk_verdict = "Cash Deficit Warning (High Risk)"
+        verdict_color = "#ef4444"
+        action_directive = "Stressed debt service exceeds net rental income; capital injection required."
+
+    return {
+        'initial_equity_usd': initial_equity_usd,
+        'loan_amount_usd': loan_amount_usd,
+        'base_mortgage_rate_pct': base_mortgage_rate_pct,
+        'base_monthly_emi_usd': base_emi,
+        'base_annual_mortgage_usd': base_annual_mortgage,
+        'base_noi_usd': base_noi,
+        'base_annual_cashflow_usd': base_annual_cf,
+        'base_dscr': base_dscr,
+        'base_coc_pct': base_coc_pct,
+        'stressed_rate_pct': stressed_rate,
+        'stressed_monthly_emi_usd': stressed_emi,
+        'stressed_annual_mortgage_usd': stressed_annual_mortgage,
+        'stressed_noi_usd': stressed_noi,
+        'stressed_annual_cashflow_usd': stressed_annual_cf,
+        'stressed_dscr': stressed_dscr,
+        'stressed_coc_pct': stressed_coc_pct,
+        'cashflow_gap_usd': stressed_annual_cf - base_annual_cf,
+        'dscr_gap': stressed_dscr - base_dscr,
+        'breakeven_drop_pct': breakeven_drop_pct,
+        'risk_verdict': risk_verdict,
+        'verdict_color': verdict_color,
+        'action_directive': action_directive
+    }
+
+
+def optimize_portfolio_allocation(
+    total_capital_usd: float,
+    risk_archetype: str,
+    target_hold_years: int = 5,
+) -> dict:
+    """
+    Institutional Multi-Asset Real Estate Portfolio Allocator.
+    Deploys available investor capital across strategic Dubai real estate archetypes:
+    - High Cash-Flow Yield Engine (Cluster 2: JVC, Al Furjan, Silicon Oasis)
+    - Prime Capital Growth & Prestige (Cluster 0: Downtown, Palm Jumeirah, Marina)
+    - Balanced Barbell Allocation (50/50 Split)
+    """
+    total_capital = max(100000.0, total_capital_usd)
+    is_golden_visa = total_capital >= 544500.0  # AED 2M statutory requirement
+
+    if "Cash-Flow" in risk_archetype:
+        # High rental yield focus: higher cash-on-cash, lower capital appreciation
+        cf_weight = 0.85
+        cg_weight = 0.15
+        annual_appreciation_pct = 3.5
+        gross_yield_pct = 8.85
+        net_yield_pct = 7.15
+        description = "Prioritizes immediate quarterly dividend-style cash distributions through high-yielding transit corridor assets."
+        recommended_assets = [
+            {"Asset Type": "1-Bed Executive Apartment", "District Target": "Jumeirah Village Circle (JVC)", "Allocation Share": "45%", "Target Yield": "8.9% Gross", "Role": "High Cash Yield"},
+            {"Asset Type": "2-Bed Family Apartment", "District Target": "Al Furjan / Discovery Gardens", "Allocation Share": "40%", "Target Yield": "8.6% Gross", "Role": "Stable Tenancy"},
+            {"Asset Type": "Studio Liquidity Unit", "District Target": "Dubai Silicon Oasis", "Allocation Share": "15%", "Target Yield": "9.1% Gross", "Role": "High Liquidity"}
+        ]
+    elif "Capital Growth" in risk_archetype:
+        # Prime luxury focus: lower rental yield, high capital appreciation & trophy prestige
+        cf_weight = 0.15
+        cg_weight = 0.85
+        annual_appreciation_pct = 6.8
+        gross_yield_pct = 5.60
+        net_yield_pct = 4.25
+        description = "Focuses on scarce prime waterfront and central downtown trophy assets with institutional exit liquidity."
+        recommended_assets = [
+            {"Asset Type": "2-Bed Waterfront Luxury", "District Target": "Dubai Marina / Palm Jumeirah", "Allocation Share": "55%", "Target Yield": "5.4% Gross", "Role": "Prime Capital Growth"},
+            {"Asset Type": "1-Bed High-Floor Core", "District Target": "Downtown Dubai (Burj District)", "Allocation Share": "30%", "Target Yield": "5.8% Gross", "Role": "Institutional Flagship"},
+            {"Asset Type": "Off-Plan Launch Unit", "District Target": "Dubai Hills Estate (Emaar)", "Allocation Share": "15%", "Target Yield": "6.2% Gross", "Role": "Capital Step-Up"}
+        ]
+    else:  # Balanced Barbell
+        cf_weight = 0.50
+        cg_weight = 0.50
+        annual_appreciation_pct = 5.2
+        gross_yield_pct = 7.20
+        net_yield_pct = 5.70
+        description = "Institutional Barbell approach balancing dependable rental cash distributions with premium capital growth."
+        recommended_assets = [
+            {"Asset Type": "2-Bed Core Apartment", "District Target": "Business Bay / Downtown Fringe", "Allocation Share": "40%", "Target Yield": "6.8% Gross", "Role": "Balanced Growth"},
+            {"Asset Type": "1-Bed High-Yield Unit", "District Target": "Jumeirah Village Circle (JVC)", "Allocation Share": "35%", "Target Yield": "8.8% Gross", "Role": "Cash Flow Yield Anchor"},
+            {"Asset Type": "Off-Plan Tier 1 Equity", "District Target": "Dubai Creek Harbour (Emaar)", "Allocation Share": "25%", "Target Yield": "6.5% Gross", "Role": "Development Appreciation"}
+        ]
+
+    # Projections
+    annual_net_rental_usd = total_capital * (net_yield_pct / 100.0)
+    cumulative_net_rental_usd = annual_net_rental_usd * target_hold_years
+    terminal_asset_value_usd = total_capital * ((1.0 + (annual_appreciation_pct / 100.0)) ** target_hold_years)
+    capital_gain_usd = terminal_asset_value_usd - total_capital
+    total_net_gain_usd = cumulative_net_rental_usd + capital_gain_usd
+    total_roi_pct = (total_net_gain_usd / total_capital) * 100.0
+    annualized_irr_pct = ((1.0 + (total_roi_pct / 100.0)) ** (1.0 / target_hold_years) - 1.0) * 100.0
+
+    return {
+        'total_capital_usd': total_capital,
+        'risk_archetype': risk_archetype,
+        'target_hold_years': target_hold_years,
+        'is_golden_visa': is_golden_visa,
+        'cf_weight': cf_weight,
+        'cg_weight': cg_weight,
+        'annual_appreciation_pct': annual_appreciation_pct,
+        'gross_yield_pct': gross_yield_pct,
+        'net_yield_pct': net_yield_pct,
+        'annual_net_rental_usd': annual_net_rental_usd,
+        'cumulative_net_rental_usd': cumulative_net_rental_usd,
+        'terminal_asset_value_usd': terminal_asset_value_usd,
+        'capital_gain_usd': capital_gain_usd,
+        'total_net_gain_usd': total_net_gain_usd,
+        'total_roi_pct': total_roi_pct,
+        'annualized_irr_pct': annualized_irr_pct,
+        'description': description,
+        'recommended_assets': recommended_assets
+    }
+
