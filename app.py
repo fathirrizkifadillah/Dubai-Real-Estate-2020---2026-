@@ -16,8 +16,8 @@ import analytics_core as core
 
 # ----------------- PAGE CONFIGURATION -----------------
 st.set_page_config(
-    page_title="Dubai Real Estate Intelligence | 2020–2026",
-    page_icon=":material/domain:",
+    page_title="KHOR DXB | Real Estate Intelligence & Decision Support",
+    page_icon="❖",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -201,12 +201,13 @@ with st.sidebar:
     st.markdown("""
         <div style="padding: 2px 0 12px 0;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px; color: #c5a880;">❖</span>
-                <span style="font-size: 16px; font-weight: 700; letter-spacing: 0.05em; color: #f8fafc;">DUBAI REAL ESTATE</span>
+                <span style="font-size: 22px; color: #c5a880;">❖</span>
+                <span style="font-size: 18px; font-weight: 800; letter-spacing: 0.06em; color: #f8fafc;">KHOR DXB</span>
             </div>
-            <div style="font-size: 11px; color: #94a3b8; margin-top: 3px;">Institutional Intelligence & Decision Platform</div>
+            <div style="font-size: 11px; color: #c5a880; font-weight: 600; margin-top: 2px; letter-spacing: 0.02em;">Real Estate Intelligence & DSS</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Institutional Platform | 2020–2026</div>
             <div style="margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; font-size: 10px; color: #10b981; font-weight: 600;">
-                <span>●</span> 2020–2026 DLD Aggregated & Listed
+                <span>●</span> DLD Land Registry & Aggregated
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -228,22 +229,40 @@ with st.sidebar:
     st.divider()
     
     # Navigation Hierarchy
-    st.markdown("**Intelligence Modules**")
+    st.markdown("**Navigasi Alur Kerja (Workflow)**")
+    
+    nav_modules = [
+        "1. Platform Purpose & Spatial Overview",
+        "2. District Rental Yields & Clusters",
+        "3. Developer Brand Equity & Pipeline",
+        "4. AI Valuation & Deal Screener",
+        "5. Portfolio Allocator & Stress DSS",
+        "6. Macro Price Forecasting (Prophet)",
+        "7. Data Governance & Methodology"
+    ]
+    
     menu = st.radio(
-        "Navigation",
-        [
-            "Market Overview & Spatial Macro",
-            "Yield & District Opportunity",
-            "Developer Brand Equity",
-            "Valuation Intelligence & Deal Screener (AI)",
-            "Portfolio DSS & Stress Simulator",
-            "Price Forecasting (Prophet)",
-            "Data Quality & Methodology"
-        ],
+        "Workflow Navigation",
+        nav_modules,
         index=0,
         label_visibility="collapsed"
     )
     
+    # Dynamic Context Card explaining the selected module
+    nav_explanations = {
+        "1. Platform Purpose & Spatial Overview": "Misi platform, 62k+ listing spasial DLD, rute metro, korelasi makro suku bunga, autokorelasi spasial Moran's I & OLS hedonik.",
+        "2. District Rental Yields & Clusters": "Analisis gross vs net yield, 4 klaster distrik investor (K-Means/PCA), musiman sewa, dan uji hipotesis premi freehold.",
+        "3. Developer Brand Equity & Pipeline": "Premi harga pengembang Tier 1 (Emaar/Nakheel) dan risiko konsentrasi serah terima proyek off-plan 2024–2028+.",
+        "4. AI Valuation & Deal Screener": "Automated Valuation Models (AVM) sekunder/off-plan dan penyaring kesepakatan AI (Undervalued vs Overpriced).",
+        "5. Portfolio Allocator & Stress DSS": "Alokator modal multi-aset, verifikasi kelolosan UAE Golden Visa (AED 2M), dan stress-test suku bunga KPR (DSCR perbankan).",
+        "6. Macro Price Forecasting (Prophet)": "Proyeksi tren harga median per sqft hingga 36 bulan ke depan dengan 95% uncertainty interval.",
+        "7. Data Governance & Methodology": "Audit trail 5 dataset terhubung, batasan metodologi, dan definisi legal properti DLD."
+    }
+    
+    with st.container(border=True):
+        st.markdown("<div style='font-size: 10px; font-weight: 700; color: #c5a880; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;'>Fokus Modul Aktif</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='font-size: 11px; color: #cbd5e1; line-height: 1.4;'>{nav_explanations[menu]}</div>", unsafe_allow_html=True)
+
     st.divider()
     with st.container(border=True):
         st.markdown("<div style='font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;'>Coverage Telemetry</div>", unsafe_allow_html=True)
@@ -264,14 +283,45 @@ def convert_r(usd_per_sqft: float | np.ndarray) -> float | np.ndarray:
 
 
 # ==============================================================================
-# VIEW 1: MARKET OVERVIEW & SPATIAL MACRO
+# VIEW 1: PLATFORM PURPOSE & SPATIAL OVERVIEW
 # ==============================================================================
-if menu == "Market Overview & Spatial Macro":
-    st.title("Market Overview & Spatial Macro")
-    st.markdown(
-        "Executive real estate landscape across ready secondary sales, off-plan developer pipelines, "
-        "and active leasing corridors across the Emirate of Dubai."
-    )
+if menu == "1. Platform Purpose & Spatial Overview":
+    st.markdown("""
+        <div style="background: linear-gradient(135deg, rgba(197, 168, 128, 0.12) 0%, rgba(17, 23, 38, 0.95) 100%); border: 1px solid rgba(197, 168, 128, 0.35); border-radius: 10px; padding: 22px 26px; margin-bottom: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 26px; color: #c5a880;">❖</span>
+                        <span style="font-size: 24px; font-weight: 800; letter-spacing: 0.05em; color: #f8fafc;">KHOR DXB</span>
+                        <span style="background: rgba(197, 168, 128, 0.2); border: 1px solid #c5a880; color: #c5a880; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.05em;">INSTITUTIONAL INTELLIGENCE</span>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 600; color: #c5a880; margin-top: 4px;">
+                        Dubai Real Estate Market Intelligence & Institutional Decision Support Platform (2020–2026)
+                    </div>
+                    <div style="font-size: 13px; color: #cbd5e1; margin-top: 10px; line-height: 1.6; max-width: 880px;">
+                        <b>Misi & Tujuan Platform</b>: KHOR DXB dibangun untuk memecahkan asimetri informasi di pasar properti Dubai yang bergerak cepat. Mengintegrasikan data resmi Dubai Land Department (DLD) ke dalam alur kerja kuantitatif terpadu: memverifikasi nilai wajar properti, menyaring kesepakatan diskon (<i>Undervalued</i>) vs spekulatif (<i>Overpriced</i>), memetakan dividen sewa bersih, hingga mensimulasikan alokasi modal dan stres utang perbankan (DSCR).
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                    <div style="font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">Pilar 1: Spasial & Makro</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Eksplorasi 62.000+ listing DLD, stasiun metro, autokorelasi spasial Moran's I, dan dekomposisi nilai hedonik OLS.</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                    <div style="font-size: 11px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">Pilar 2: AI Deal Screener</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Deteksi otomatis peluang diskon pasar sekunder menggunakan klasifikasi HistGradientBoosting (Akurasi 95,35%, ROC-AUC 0,994).</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(197, 168, 128, 0.25);">
+                    <div style="font-size: 11px; font-weight: 700; color: #c5a880; text-transform: uppercase; letter-spacing: 0.05em;">Pilar 3: Decision Support (DSS)</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Optimasi alokasi modal multi-aset (kelolosan UAE Golden Visa AED 2M) dan uji ketahanan KPR terhadap shock bunga bank sentral.</div>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("Executive Market Telemetry & Spatial Network")
+    st.caption("Ringkasan portofolio listing aktif pasar sekunder, serah terima off-plan, dan koridor sewa di seluruh Emirat Dubai.")
     
     # Top-Level Executive KPI Row
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
@@ -619,9 +669,9 @@ if menu == "Market Overview & Spatial Macro":
 
 
 # ==============================================================================
-# VIEW 2: YIELD & DISTRICT OPPORTUNITY
+# VIEW 2: DISTRICT RENTAL YIELDS & CLUSTERS
 # ==============================================================================
-elif menu == "Yield & District Opportunity":
+elif menu == "2. District Rental Yields & Clusters":
     st.title("Rental Yield & District Opportunity")
     st.markdown(
         "Assess gross cash-flow yields vs net yield proxies (accounting for operational service charges), "
@@ -777,9 +827,9 @@ elif menu == "Yield & District Opportunity":
 
 
 # ==============================================================================
-# VIEW 3: DEVELOPER BRAND EQUITY
+# VIEW 3: DEVELOPER BRAND EQUITY & PIPELINE
 # ==============================================================================
-elif menu == "Developer Brand Equity":
+elif menu == "3. Developer Brand Equity & Pipeline":
     st.title("Developer Brand Equity & Econometrics")
     st.markdown("Isolating true developer pricing power from location, unit size, and property configuration.")
     st.divider()
@@ -862,9 +912,9 @@ elif menu == "Developer Brand Equity":
 
 
 # ==============================================================================
-# VIEW 4: VALUATION INTELLIGENCE & DEAL SCREENER (AI)
+# VIEW 4: AI VALUATION & DEAL SCREENER
 # ==============================================================================
-elif menu == "Valuation Intelligence & Deal Screener (AI)":
+elif menu == "4. AI Valuation & Deal Screener":
     st.title("Valuation Intelligence Engine")
     st.markdown("Automated Valuation Models (AVM) for ready secondary resale and off-plan launch projects.")
     st.divider()
@@ -1185,9 +1235,9 @@ elif menu == "Valuation Intelligence & Deal Screener (AI)":
 
 
 # ==============================================================================
-# VIEW 5: PORTFOLIO DSS & STRESS SIMULATOR
+# VIEW 5: PORTFOLIO ALLOCATOR & STRESS DSS
 # ==============================================================================
-elif menu == "Portfolio DSS & Stress Simulator":
+elif menu == "5. Portfolio Allocator & Stress DSS":
     st.title("Portfolio Decision Support & Macro Stress Simulator")
     st.markdown(
         "Institutional real estate capital allocation engine: buy-to-let mortgage debt service, "
@@ -1536,9 +1586,9 @@ elif menu == "Portfolio DSS & Stress Simulator":
 
 
 # ==============================================================================
-# VIEW 6: PRICE FORECASTING (PROPHET)
+# VIEW 6: MACRO PRICE FORECASTING (PROPHET)
 # ==============================================================================
-elif menu == "Price Forecasting (Prophet)":
+elif menu == "6. Macro Price Forecasting (Prophet)":
     st.title("Macro Price Forecasting (Prophet)")
     st.markdown("Macro scenario extrapolations fitted on city-wide monthly median secondary resale records.")
     st.divider()
@@ -1628,9 +1678,9 @@ elif menu == "Price Forecasting (Prophet)":
 
 
 # ==============================================================================
-# VIEW 7: DATA QUALITY & METHODOLOGY
+# VIEW 7: DATA GOVERNANCE & METHODOLOGY
 # ==============================================================================
-elif menu == "Data Quality & Methodology":
+elif menu == "7. Data Governance & Methodology":
     st.title("Data Quality & Governance Methodology")
     st.markdown("Transparency, schema integrity, and institutional research boundary definitions.")
     st.divider()
