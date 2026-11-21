@@ -8,48 +8,63 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Data: DLD Official](https://img.shields.io/badge/Data-Dubai_Land_Department-10B981)](https://www.kaggle.com/datasets/sergionefedov/dubai-real-estate-sales-and-rentals-20202026)
 
-An institutional-grade real estate analytics engine and machine learning decision support system (DSS) built on 62,000+ transaction and listing records across the Emirate of Dubai (2020–2026). The platform combines spatial econometrics, dual-ensemble automated valuation models (AVM), supervised deal opportunity classification, and bank-grade macroeconomic debt-service stress testing.
+Platform intelijen pasar dan sistem penunjang keputusan investasi (*Decision Support System* / DSS) kelas institusional berbasis data transaksi resmi **Dubai Land Department (DLD)** dan listing pasar terbuka periode 2020–2026 (62.000+ data transaksi). 
+
+Platform ini mengintegrasikan ekonometrika spasial, Automated Valuation Models (AVM), klasifikasi kesepakatan AI (*Undervalued vs Overpriced*), pemodelan portofolio multi-aset berbasis regulasi UAE Golden Visa (AED 2 Juta), serta simulasi stres utang perbankan komersial (*Debt Service Coverage Ratio* / DSCR).
 
 ---
 
 ## Daftar Isi (Table of Contents)
 
-1. [Pemenuhan Rubrik Tugas Besar AI (Akademik)](#1-pemenuhan-rubrik-tugas-besar-ai-akademik)
-2. [Sumber Dataset & Arsitektur Relasional](#2-sumber-dataset--arsitektur-relasional)
-3. [Rekayasa Fitur Spesifik Domain (Feature Engineering)](#3-rekayasa-fitur-spesifik-domain-feature-engineering)
-4. [17-Stage Exploratory Data Analysis (EDA)](#4-17-stage-exploratory-data-analysis-eda)
-5. [Arsitektur Model Machine Learning](#5-arsitektur-model-machine-learning)
-6. [Metodologi Pelatihan & Validasi Walk-Forward](#6-metodologi-pelatihan--validasi-walk-forward)
-7. [Landasan Matematis & Formulasi Ekonometrika](#7-landasan-matematis--formulasi-ekonometrika)
-8. [Decision Support System (DSS) & Pemodelan Finansial](#8-decision-support-system-dss--pemodelan-finansial)
-9. [Tech Stack & Desain Sistem](#9-tech-stack--desain-sistem)
-10. [Panduan Instalasi & Eksekusi Lokal](#10-panduan-instalasi--eksekusi-lokal)
-11. [Struktur Repositori](#11-struktur-repositori)
-12. [Batasan Penelitian & Tata Kelola Data](#12-batasan-penelitian--tata-kelola-data)
+1. [Latar Belakang & Pernyataan Masalah](#1-latar-belakang--pernyataan-masalah)
+2. [Arsitektur Solusi & 3 Pilar Platform](#2-arsitektur-solusi--3-pilar-platform)
+3. [Sumber Dataset & Arsitektur Relasional](#3-sumber-dataset--arsitektur-relasional)
+4. [Rekayasa Fitur Spesifik Domain](#4-rekayasa-fitur-spesifik-domain)
+5. [17-Stage Exploratory Data Analysis (EDA)](#5-17-stage-exploratory-data-analysis-eda)
+6. [Arsitektur Model Machine Learning](#6-arsitektur-model-machine-learning)
+7. [Metodologi Pelatihan & Validasi Walk-Forward](#7-metodologi-pelatihan--validasi-walk-forward)
+8. [Landasan Matematis & Formulasi Ekonometrika](#8-landasan-matematis--formulasi-ekonometrika)
+9. [Decision Support System (DSS) & Pemodelan Finansial](#9-decision-support-system-dss--pemodelan-finansial)
+10. [Tech Stack & Desain Sistem](#10-tech-stack--desain-sistem)
+11. [Panduan Instalasi & Eksekusi Lokal](#11-panduan-instalasi--eksekusi-lokal)
+12. [Struktur Repositori](#12-struktur-repositori)
+13. [Batasan Penelitian & Tata Kelola Data](#13-batasan-penelitian--tata-kelola-data)
 
 ---
 
-## 1. Pemenuhan Rubrik Tugas Besar AI (Akademik)
+## 1. Latar Belakang & Pernyataan Masalah
 
-Repositori ini disusun untuk memenuhi **Opsi 4: AI with PYTHON** pada mata kuliah *Kecerdasan Buatan* (Universitas Siliwangi / channel *Artificial Intelligence Siliwangi*).
+Pasar real estat Dubai merupakan salah satu pasar properti dengan pertumbuhan likuiditas global tercepat di dunia. Namun, investor institusional, pengelola aset (*family offices*), maupun pembeli internasional menghadapi **tiga asimetri informasi kritis**:
 
-* **Teknik Pembelajaran (*Learning*) Wajib**: 
-  - **Supervised Learning (Classification)**: `HistGradientBoostingClassifier` (Penyaring Peluang Kesepakatan Investasi / *Deal Screener*).
-  - **Unsupervised Learning (Clustering)**: `KMeans` ($k=4$) ditransformasikan dengan `PCA` (Pengelompokan Arketipe Distrik Investor).
+1. **Distorsi Valuasi & Spekulasi Listing**: Sulit membedakan secara objektif apakah harga penawaran suatu properti berada pada nilai wajar (*Fair Value*), diskon riil (*Undervalued*), atau markup spekulatif (*Overpriced*).
+2. **Kesenjangan Yield Nyata vs Bruto**: Angka *gross rental yield* sering kali menyesatkan investor karena belum memperhitungkan biaya pemeliharaan (*service charges* per sqft), cadangan kekosongan (*vacancy allowance*), dan biaya registrasi pemerintah (DLD Fee 4%).
+3. **Sensitivitas Utang & Risiko Makro**: Ketergantungan pembiayaan KPR terhadap suku bunga mengambang bank sentral (CBUAE) menciptakan kerentanan arus kas ketika terjadi kontraksi sewa atau lonjakan suku bunga acuan.
 
-### Matriks Pemenuhan 5 Rincian Tugas
-
-| Rincian Tugas | Format Deliverable | Implementasi Teknis pada Proyek | Lokasi Berkas |
-| :--- | :---: | :--- | :--- |
-| **1. Unduh & Instalasi Tools** | Slide Presentasi | Panduan setup Python 3.11, virtual environment, dependensi ML (`scikit-learn`, `statsmodels`, `prophet`), dan eksekusi dashboard Streamlit. | [README.md](#10-panduan-instalasi--eksekusi-lokal), [requirements.txt](file:///c:/CODING/EDA/Dubai%20Real%20Estate%20(2020-2026)/requirements.txt) |
-| **2. Lingkungan Kerja Tools** | Slide Presentasi | Dokumentasi workspace: pemisahan shared core engine (`analytics_core.py`), pipeline notebook eksperimen (`main.ipynb`), artefak model terkompresi (`models/`), dan frontend (`app.py`). | [README.md](#11-struktur-repositori) |
-| **3. Deskripsi Kasus Proyek** | Slide Presentasi | Asimetri informasi pasar real estat Dubai: volatilitas harga sekunder vs peluncuran baru, risiko serah terima off-plan, dan dampak guncangan suku bunga bank sentral. | [README.md](#4-17-stage-exploratory-data-analysis-eda) |
-| **4. Solusi Kasus** | Slide Presentasi | Formulasi AVM regresi ensemble ganda, klasifikasi peluang kesepakatan (*Undervalued vs Overpriced*), klasterisasi profil investor, serta mitigasi risiko via DSCR. | [README.md](#5-arsitektur-model-machine-learning), [README.md](#7-landasan-matematis--formulasi-ekonometrika) |
-| **5. Demonstrasi Software** | Demo Aplikasi | Demonstrasi interaktif platform Streamlit: navigasi alur kerja bertahap (1 s/d 7), peta spasial MapLibre, kartu sinyal AI screener dinamis, dan simulator portofolio. | [app.py](file:///c:/CODING/EDA/Dubai%20Real%20Estate%20(2020-2026)/app.py) |
+KHOR DXB dirancang sebagai platform analitik terpadu untuk menyelesaikan ketiga persoalan tersebut melalui pemodelan berbasis data empiris, inferensi kausal ekonometrika, dan algoritma *supervised machine learning*.
 
 ---
 
-## 2. Sumber Dataset & Arsitektur Relasional
+## 2. Arsitektur Solusi & 3 Pilar Platform
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           ❖ KHOR DXB CORE ENGINE                                │
+├─────────────────────────┬─────────────────────────────┬─────────────────────────┤
+│ PILAR 1: SPASIAL &      │ PILAR 2: AI VALUATION &     │ PILAR 3: INSTITUTIONAL  │
+│ MAKRO EKONOMETRIKA      │ DEAL SCREENER               │ DECISION SUPPORT (DSS)  │
+│                         │                             │                         │
+│ • Pemetaan 62k+ listing │ • Dual-Ensemble AVM:        │ • Alokator Portofolio:  │
+│ • Dekopling CBUAE Rate  │   - Resale (HistBoost R²=82)│   - Barbell Strategy    │
+│ • Autokorelasi Moran's I│   - Off-Plan (RF R²=0.83)   │   - Golden Visa AED 2M  │
+│ • Dekomposisi Hedonik   │ • Supervised Deal Screener: │ • Stress-Test Perbankan:│
+│ • Supply Risk 2024-2028+│   - 95.35% Akurasi Holdout  │   - DSCR Debt Coverage  │
+│ • 4 Klaster K-Means/PCA │   - ROC-AUC 0.9944          │   - Breakeven Drop      │
+└─────────────────────────┴─────────────────────────────┴─────────────────────────┘
+```
+
+---
+
+## 3. Sumber Dataset & Arsitektur Relasional
 
 * **Tautan Sumber Resmi**: [Kaggle: Dubai Real Estate Sales and Rentals 2020–2026](https://www.kaggle.com/datasets/sergionefedov/dubai-real-estate-sales-and-rentals-20202026) (Kompilasi oleh Sergio Nefedov).
 * **Entitas Asal**: Catatan resmi transaksi **Dubai Land Department (DLD)** dan listing pasar terbuka periode Januari 2020 hingga April 2026.
@@ -90,19 +105,19 @@ Repositori ini disusun untuk memenuhi **Opsi 4: AI with PYTHON** pada mata kulia
 
 ---
 
-## 3. Rekayasa Fitur Spesifik Domain (Feature Engineering)
+## 4. Rekayasa Fitur Spesifik Domain
 
 Semua rekayasa fitur diimplementasikan di [analytics_core.py](file:///c:/CODING/EDA/Dubai%20Real%20Estate%20(2020-2026)/analytics_core.py):
 
-* **`property_age` & `is_brand_new`**: Menghitung usia depresiasi fisik properti ($\text{listing\_year} - \text{year\_built}$). Unit dengan usia $\le 1$ tahun diidentifikasi sebagai properti baru tanpa diskon pemakaian iklim gurun.
-* **`floor_ratio` & `is_penthouse_tier`**: Mengukur elevasi relatif unit terhadap total lantai gedung ($\frac{\text{floor}}{\text{total\_floors}}$). Properti di 2 lantai teratas dengan lantai $\ge 15$ ditandai sebagai unit *penthouse*.
-* **`is_golden_visa_tier`**: Mengkodekan kepatuhan regulasi statutori imigrasi UEA pasca-Oktober 2022. Menandai properti dengan nilai transaksi $\ge \$544.500$ USD (setara $\text{AED } 2.000.000$) yang berhak mendapatkan visa residensi 10 tahun.
+* **`property_age` & `is_brand_new`**: Menghitung usia depresiasi fisik properti (`listing_year - year_built`). Properti dengan usia $\le 1$ tahun diklasifikasikan sebagai properti baru tanpa diskon depresiasi fisik iklim gurun.
+* **`floor_ratio` & `is_penthouse_tier`**: Mengukur elevasi vertikal unit terhadap total lantai gedung (`floor / total_floors`). Properti pada 2 lantai teratas dengan lantai $\ge 15$ diklasifikasikan sebagai unit *penthouse*.
+* **`is_golden_visa_tier`**: Mengkodekan kepatuhan regulasi statutori imigrasi UEA pasca-Oktober 2022. Menandai properti bernilai $\ge \$544.500$ USD (setara $\text{AED } 2.000.000$) yang berhak mendapatkan visa residensi 10 tahun.
 * **`implied_gross_yield_pct`**: Sintesis fundamental lintas tabel: menggabungkan median tarif sewa per distrik dan jumlah kamar dari `rentals.csv` ke setiap listing jual di `secondary_sales.csv` untuk menghasilkan estimasi *capitalization rate* sintetis.
-* **`construction_lead_time` & `years_to_handover`**: Mengisolasi durasi pembangunan ($\text{handover\_year} - \text{launch\_year}$) dan sisa waktu tunggu penyelesaian unit off-plan.
+* **`construction_lead_time` & `years_to_handover`**: Mengisolasi durasi pembangunan (`handover_year - launch_year`) dan sisa waktu tunggu penyelesaian proyek off-plan.
 
 ---
 
-## 4. 17-Stage Exploratory Data Analysis (EDA)
+## 5. 17-Stage Exploratory Data Analysis (EDA)
 
 Riset eksploratif dibagi ke dalam 4 pilar analisis komprehensif di [main.ipynb](file:///c:/CODING/EDA/Dubai%20Real%20Estate%20(2020-2026)/main.ipynb):
 
@@ -134,7 +149,7 @@ Riset eksploratif dibagi ke dalam 4 pilar analisis komprehensif di [main.ipynb](
 
 ---
 
-## 5. Arsitektur Model Machine Learning
+## 6. Arsitektur Model Machine Learning
 
 ```
                       ┌────────────────────────────────────────┐
@@ -154,9 +169,9 @@ Riset eksploratif dibagi ke dalam 4 pilar analisis komprehensif di [main.ipynb](
 
 Semua model dievaluasi pada data uji holdout kronologis (20% data terbaru / 9.928 transaksi):
 
-| Nama Model | Tugas ML | Arsitektur Algoritma | Metrik Utama (Holdout) | Baseline Pembanding |
+| Nama Model | Kategori Model | Arsitektur Algoritma | Metrik Utama (Holdout) | Baseline Pembanding |
 | :--- | :--- | :--- | :--- | :--- |
-| **Investment Deal Screener** | Klasifikasi Multikelas (3 Kelas) | `HistGradientBoostingClassifier` | **Akurasi: 95,35%**<br>**Macro F1: 93,81%**<br>**ROC-AUC: 0,9944** | Dummy Stratified Classifier (Akurasi: 34,1%) |
+| **Investment Deal Screener** | Supervised Classification | `HistGradientBoostingClassifier` | **Akurasi: 95,35%**<br>**Macro F1: 93,81%**<br>**ROC-AUC: 0,9944** | Dummy Stratified Classifier (Akurasi: 34,1%) |
 | **Investor District Archetypes** | Unsupervised Clustering | `KMeans(k=4)` + `PCA(2 Comp)` | **Davies-Bouldin: 0,81**<br>**Silhouette: 0,44** | Random Spatial Partition |
 | **Secondary Resale AVM** | Supervised Regression | `HistGradientBoostingRegressor` | **Holdout $R^2$: 0,825**<br>**MAPE: 21,9%**<br>**MdAPE: 15,6%** | Median Baseline (MAPE: 108,6%, $R^2$: -0,104) |
 | **Off-Plan Project Estimator** | Supervised Regression | `RandomForestRegressor` | **Holdout $R^2$: 0,829**<br>**MAPE: 15,5%**<br>**PE20: 69,4%** | OLS Linier Sederhana ($R^2$: 0,612, MAPE: 39,8%) |
@@ -165,7 +180,7 @@ Semua model dievaluasi pada data uji holdout kronologis (20% data terbaru / 9.92
 
 ---
 
-## 6. Metodologi Pelatihan & Validasi Walk-Forward
+## 7. Metodologi Pelatihan & Validasi Walk-Forward
 
 Untuk mencegah kebocoran data masa depan (*temporal lookahead leakage*), pemisahan data dilakukan secara ketat berdasarkan urutan waktu pendaftaran listing (`date_listed`):
 
@@ -185,7 +200,7 @@ Peningkatan performa yang konsisten pada setiap penambahan data latih membuktika
 
 ---
 
-## 7. Landasan Matematis & Formulasi Ekonometrika
+## 8. Landasan Matematis & Formulasi Ekonometrika
 
 ### A. Autokorelasi Spasial — Global Moran's $I$
 
@@ -200,7 +215,9 @@ $$w_{ij} = \frac{1}{d_{ij}} = \frac{1}{\sqrt{(\text{lat}_i - \text{lat}_j)^2 + (
 $$S_0 = \sum_{i=1}^N \sum_{j=1}^N w_{ij}, \quad E[I] = -\frac{1}{N - 1} = -\frac{1}{25} = -0{,}0400$$
 
 Uji signifikansi Monte Carlo (999 permutasi):
+
 $$Z_I = \frac{I - E[I]}{\sqrt{\text{Var}(I)}} = \frac{+0{,}1584 - (-0{,}0400)}{0{,}0268} = \mathbf{+7{,}379} \quad (p = 0{,}00100)$$
+
 *Menolak $H_0$ secara mutlak ($p < 0{,}001$). Terbukti bahwa harga properti di Dubai terklasterisasi kuat secara geografis.*
 
 ### B. Dekomposisi Hedonik Log-Linier & Semi-Elastisitas
@@ -227,10 +244,10 @@ Di mana $P$ adalah pokok pinjaman bank, $r = \frac{\text{Suku Bunga Tahunan}}{12
 
 ### D. Rasio Perbankan Komersial — Debt Service Coverage Ratio (DSCR)
 
-$$\text{DSCR} = \frac{\text{Net Operating Income (NOI)}}{\text{Annual Debt Service (EMI)}}$$
+$$\text{DSCR} = \frac{\text{NOI}}{\text{Annual Debt Service}}$$
 
 Di mana:
-$$\text{NOI} = \left[\text{Gross Rent} \times \left(1 - \frac{\text{Vacancy}\%}{100}\right)\right] - \left(\text{Service Charge/sqft} \times \text{Property Area}\right)$$
+$$\text{NOI} = \text{Effective Rent} - \text{Annual Service Charges}$$
 $$\text{Annual Debt Service} = M \times 12$$
 
 *Ambang Batas Penilaian Risiko Institusional*:
@@ -240,11 +257,11 @@ $$\text{Annual Debt Service} = M \times 12$$
 
 ### E. Ambang Batas Penurunan Sewa Maksimal (Breakeven Rental Contraction)
 
-$$\Delta \text{Rent}_{\text{BE}}\% = \left[ 1 - \frac{\text{Annual Debt Service} + \text{Annual Service Charges}}{\text{Gross Annual Rent} \times \left(1 - \frac{\text{Vacancy}\%}{100}\right)} \right] \times 100\%$$
+$$\Delta \text{Rent}_{\text{BE}}\% = \left[ 1 - \frac{\text{Annual Debt Service} + \text{Annual Service Charges}}{\text{Gross Annual Rent} \times \left(1 - \frac{\text{Vacancy Rate}}{100}\right)} \right] \times 100\%$$
 
 ---
 
-## 8. Decision Support System (DSS) & Pemodelan Finansial
+## 9. Decision Support System (DSS) & Pemodelan Finansial
 
 Platform menyediakan 3 modul pendukung keputusan terintegrasi di [app.py](file:///c:/CODING/EDA/Dubai%20Real%20Estate%20(2020-2026)/app.py) (Modul 5):
 
@@ -269,7 +286,7 @@ Platform menyediakan 3 modul pendukung keputusan terintegrasi di [app.py](file:/
 
 ---
 
-## 9. Tech Stack & Desain Sistem
+## 10. Tech Stack & Desain Sistem
 
 * **Bahasa & Runtime**: Python 3.11.x
 * **Data Science & ML**: `scikit-learn`, `statsmodels`, `prophet`, `scipy`, `pandas`, `numpy`
@@ -283,7 +300,7 @@ Platform menyediakan 3 modul pendukung keputusan terintegrasi di [app.py](file:/
 
 ---
 
-## 10. Panduan Instalasi & Eksekusi Lokal
+## 11. Panduan Instalasi & Eksekusi Lokal
 
 ### Prasyarat Sistem
 - Python 3.10 atau 3.11 (direkomendasikan Python 3.11)
@@ -315,7 +332,7 @@ Buka berkas [main.ipynb](file:///c:/CODING/EDA/Dubai%20Real%20Estate%20(2020-202
 
 ---
 
-## 11. Struktur Repositori
+## 12. Struktur Repositori
 
 ```text
 Dubai Real Estate (2020-2026)/
@@ -350,14 +367,14 @@ Dubai Real Estate (2020-2026)/
 
 ---
 
-## 12. Batasan Penelitian & Tata Kelola Data
+## 13. Batasan Penelitian & Tata Kelola Data
 
 1. **Harga Penawaran vs Harga Akta Selesai**: Dataset bersumber dari listing pasar terbuka dan agregasi DLD. Nilai yang disajikan mencerminkan dinamika penawaran pasar aktif dan bukan merupakan jaminan akta resmi notaris pemerintah.
 2. **Keterbatasan Peramalan Deret Waktu**: Proyeksi Meta Prophet mengekstrapolasi pola musiman historis 2020–2026 dan tidak memprediksi guncangan geopolitik tak terduga (*black-swan events*) atau perubahan drastis regulasi perpajakan.
-3. **Penyangkalan Finansial**: Metrik yield dan simulasi DSCR ditujukan untuk analisis kuantitatif akademik dan pengujian skenario portofolio, bukan merupakan nasihat keuangan legal atau investasi perseorangan mengikat.
+3. **Penyangkalan Finansial**: Metrik yield dan simulasi DSCR ditujukan untuk analisis kuantitatif profesional dan pengujian skenario portofolio, bukan merupakan nasihat keuangan legal atau investasi perseorangan mengikat.
 
 ---
 
 **Author**: Fathir  
-**Institusi**: Universitas Siliwangi (Program Studi Informatika — Mata Kuliah Kecerdasan Buatan)  
+**Platform**: KHOR DXB Real Estate Intelligence & Decision Support  
 **Tahun Rilis**: 2026 | **Lisensi**: MIT License
